@@ -1,0 +1,176 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#061009">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Deka Fit Parejas</title>
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <noscript><div class="noscript">Activa JavaScript para usar el cronometro.</div></noscript>
+  <div id="jsProbe" class="js-probe">JS cargando</div>
+
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <img class="brand-logo" src="img/logo.svg" alt="Deka">
+        <div>
+          <h1>Deka Fit Parejas</h1>
+          <p>Crono por prueba, total y comparativa</p>
+        </div>
+      </div>
+      <div class="status" id="status">Listo</div>
+    </header>
+
+    <section class="screen active" id="setupScreen">
+      <div class="setup-grid">
+        <section class="panel intro-panel">
+          <h2>Control de prueba</h2>
+          <p>Prepara la pareja, asigna estaciones con P1/P2/Ambos y carga una sesion anterior si quieres comparar parciales. Todo se puede corregir durante la prueba.</p>
+
+          <div class="athletes">
+            <article class="athlete-card selected" id="cardA">
+              <div class="avatar" id="avatarA">P1</div>
+              <div class="athlete-body">
+                <label>Persona 1<input id="nameA" type="text" autocomplete="name" placeholder="Nombre opcional"></label>
+                <div class="row-actions">
+                  <label class="small-btn file-btn">Foto<input id="photoA" type="file" accept="image/*"></label>
+                  <button class="small-btn" id="selectA" type="button">Seleccionar</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="athlete-card" id="cardB">
+              <div class="avatar avatar-b" id="avatarB">P2</div>
+              <div class="athlete-body">
+                <label>Persona 2<input id="nameB" type="text" autocomplete="name" placeholder="Nombre opcional"></label>
+                <div class="row-actions">
+                  <label class="small-btn file-btn">Foto<input id="photoB" type="file" accept="image/*"></label>
+                  <button class="small-btn" id="selectB" type="button">Seleccionar</button>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" id="startBtn" type="button">Empezar</button>
+            <label class="btn file-btn">Cargar anterior<input id="importFile" type="file" accept=".xml,.json,application/xml,text/xml,application/json"></label>
+            <button class="btn" id="loadLastBtn" type="button">Ultima guardada</button>
+          </div>
+        </section>
+
+        <section class="panel route-panel">
+          <h2>Recorrido Deka</h2>
+          <p>Vista compacta del circuito. Usa los botones de cada prueba para asignarla sin cambios accidentales.</p>
+          <div class="metrics">
+            <div><strong>20</strong><span>tramos y estaciones</span></div>
+            <div><strong>10</strong><span>carreras de enlace</span></div>
+            <div><strong>3</strong><span>maquinas cardio</span></div>
+            <div><strong>2</strong><span>personas por pareja</span></div>
+          </div>
+          <div class="route-list" id="routeList"></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="screen" id="workoutScreen">
+      <div class="workout-grid">
+        <section class="stage">
+          <div class="stage-art" id="stationArt"></div>
+          <div class="stage-body">
+            <div class="station-head">
+              <div>
+                <p class="muted" id="stationCount">1/20</p>
+                <h2 id="stationName">160 m juntos</h2>
+                <p class="muted" id="stationDetail">Salida en pareja</p>
+                <span class="badge" id="stationStandard">160 m - juntos</span>
+                <div id="currentAssignee" class="assignee">Persona 1 + Persona 2</div>
+              </div>
+              <div class="alarm" id="alarm" style="--p:0deg"><span>⏱</span></div>
+            </div>
+
+            <div class="timers">
+              <div><span>Esta prueba</span><strong id="stationTimer">00:00.0</strong></div>
+              <div><span>Total</span><strong id="totalTimer">00:00.0</strong></div>
+            </div>
+
+            <div class="actions adjust-actions">
+              <button class="small-btn" data-adjust="-10" type="button">-10s</button>
+              <button class="small-btn" data-adjust="-5" type="button">-5s</button>
+              <button class="small-btn" data-adjust="5" type="button">+5s</button>
+              <button class="small-btn" data-adjust="10" type="button">+10s</button>
+            </div>
+
+            <div class="actions workout-actions">
+              <button class="btn primary next-btn" id="nextBtn" type="button">Pasar prueba</button>
+              <button class="btn" id="prevBtn" type="button">Volver prueba</button>
+              <button class="btn" id="editCurrentBtn" type="button">Editar tiempo</button>
+              <button class="btn" id="pauseBtn" type="button">Pausar</button>
+              <button class="btn danger" id="resetBtn" type="button">Reiniciar</button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel history-panel">
+          <h3>Parciales</h3>
+          <div id="splitList"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="screen" id="resultsScreen">
+      <div class="results-grid">
+        <section class="panel results-panel">
+          <h2>Sesion completada</h2>
+          <p class="muted" id="resultNames">Pareja</p>
+          <div class="total" id="resultTotal">00:00.0</div>
+          <p class="muted" id="resultDelta"></p>
+          <div class="actions">
+            <button class="btn primary" id="pngBtn" type="button">Captura PNG</button>
+            <button class="btn primary" id="xmlBtn" type="button">Descargar XML</button>
+            <button class="btn" id="jsonBtn" type="button">JSON extra</button>
+            <button class="btn" id="copyBtn" type="button">Texto</button>
+            <button class="btn" id="newBtn" type="button">Empezar</button>
+          </div>
+          <div id="resultSplits"></div>
+        </section>
+
+        <aside class="panel charts-panel">
+          <h3>Esfuerzo por persona</h3>
+          <div id="effortBox"></div>
+          <h3>Peso de cada prueba</h3>
+          <div id="chartBox"></div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-back" id="editModal">
+    <div class="modal">
+      <h3 id="editTitle">Editar tiempo</h3>
+      <p class="muted">Ajusta minutos, segundos y decimas.</p>
+      <div class="edit-grid">
+        <label>Min<input id="editMin" type="number" inputmode="numeric" min="0" value="0"></label>
+        <label>Seg<input id="editSec" type="number" inputmode="numeric" min="0" max="59" value="0"></label>
+        <label>Dec<input id="editDec" type="number" inputmode="numeric" min="0" max="9" value="0"></label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="saveEditBtn" type="button">Guardar</button>
+        <button class="btn" id="cancelEditBtn" type="button">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <canvas id="exportCanvas" width="1080" height="1800"></canvas>
+
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
