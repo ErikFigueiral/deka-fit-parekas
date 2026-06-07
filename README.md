@@ -12,8 +12,8 @@ Cronometro web para Deka Fit por parejas, pensado para movil y escritorio, publi
 6. Cuando termine cada prueba, pulsa **Pasar prueba**.
 7. Si te equivocas, usa **Volver prueba** o **Editar tiempo**.
 8. Si paras un momento, pulsa **Pausar**. El boton cambia de color para que se vea claro.
-9. Al terminar salen el total, parciales, esfuerzo por persona y peso de cada prueba.
-10. Pulsa **Descargar XML** para guardar tus tiempos y usarlos otro dia como comparativa.
+9. Al terminar salen el total, parciales, ritmo y picos, esfuerzo por persona y peso de cada prueba.
+10. Pulsa **Guardar XML** para guardar tus tiempos y usarlos otro dia como comparativa.
 11. Pulsa **Captura PNG** si quieres mandar el resumen bonito por WhatsApp.
 
 ## Como comparar con una sesion anterior
@@ -23,6 +23,13 @@ Cronometro web para Deka Fit por parejas, pensado para movil y escritorio, publi
 3. Pulsa **Cargar anterior**.
 4. Selecciona ese XML.
 5. Al acabar la nueva prueba veras donde mejoras y donde empeoras.
+
+## Como ver progreso con varios XML
+
+1. Guarda un XML cada vez que hagas la prueba.
+2. Pulsa **Progreso XML**.
+3. Selecciona varios XML a la vez.
+4. La web los ordena por fecha y dibuja una grafica de progreso del total.
 
 ## Importante
 
@@ -40,9 +47,9 @@ index.html          estructura de la pagina
 css/styles.css      todo el diseño responsive
 js/data.js          estaciones y reglas de Deka
 js/storage.js       guardado local
-js/export.js        XML, JSON, PNG y texto
+js/export.js        XML, PNG y texto
 js/app.js           cronometro e interaccion
-img/logo.svg        logo local
+img/                logo, avatares e ilustraciones
 ```
 
 ## GitHub Pages

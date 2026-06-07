@@ -12,19 +12,18 @@
 </head>
 <body>
   <noscript><div class="noscript">Activa JavaScript para usar el cronometro.</div></noscript>
-  <div id="jsProbe" class="js-probe">JS cargando</div>
 
   <main class="app">
     <header class="topbar">
       <div class="brand">
-        <img class="brand-logo" src="img/logo.svg" alt="Deka">
+        <span class="brand-logo" aria-label="Deka"></span>
         <div>
           <h1>Deka Fit Parejas</h1>
           <p>Crono por prueba, total y comparativa</p>
         </div>
       </div>
       <div class="top-actions">
-        <button class="theme-toggle" id="themeToggle" type="button">Modo claro</button>
+        <button class="theme-toggle" id="themeToggle" type="button">Claro</button>
         <div class="status" id="status">Listo</div>
       </div>
     </header>
@@ -63,6 +62,7 @@
           <div class="actions">
             <button class="btn primary" id="startBtn" type="button">Empezar</button>
             <label class="btn file-btn">Cargar anterior<input id="importFile" type="file" accept=".xml,.json,application/xml,text/xml,application/json"></label>
+            <label class="btn file-btn">Progreso XML<input id="progressFiles" type="file" multiple accept=".xml,application/xml,text/xml"></label>
             <button class="btn" id="loadLastBtn" type="button">Ultima guardada</button>
           </div>
         </section>
@@ -76,6 +76,7 @@
             <div><strong>3</strong><span>maquinas cardio</span></div>
             <div><strong>2</strong><span>personas por pareja</span></div>
           </div>
+          <div class="progress-panel"></div>
           <div class="route-list" id="routeList"></div>
         </section>
       </div>
@@ -135,15 +136,19 @@
           <p class="muted" id="resultDelta"></p>
           <div class="actions">
             <button class="btn primary" id="pngBtn" type="button">Captura PNG</button>
-            <button class="btn primary" id="xmlBtn" type="button">Descargar XML</button>
-            <button class="btn" id="jsonBtn" type="button">JSON extra</button>
+            <button class="btn primary" id="xmlBtn" type="button">Guardar XML</button>
+            <label class="btn file-btn">Progreso XML<input id="progressFilesResults" type="file" multiple accept=".xml,application/xml,text/xml"></label>
             <button class="btn" id="copyBtn" type="button">Texto</button>
             <button class="btn" id="newBtn" type="button">Empezar</button>
           </div>
+          <p class="save-note">El XML es tu intento guardado: cargalo en otra sesion para comparar tiempos, personas y mejoras.</p>
           <div id="resultSplits"></div>
         </section>
 
         <aside class="panel charts-panel">
+          <h3>Ritmo y picos</h3>
+          <div class="rhythm-chart" id="rhythmBox"></div>
+          <div class="progress-panel"></div>
           <h3>Esfuerzo por persona</h3>
           <div id="effortBox"></div>
           <h3>Peso de cada prueba</h3>

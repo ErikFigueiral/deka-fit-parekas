@@ -61,9 +61,43 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   backdrop-filter: blur(10px);
 }
 .top-actions { display: flex; align-items: center; gap: 8px; }
-.theme-toggle { min-height: 38px; padding: 8px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-3); color: var(--text); font-weight: 900; font-size: .82rem; }
+.theme-toggle {
+  min-height: 42px;
+  width: 92px;
+  padding: 8px 12px 8px 39px;
+  position: relative;
+  border-radius: 999px;
+  border: 1px solid rgba(185,255,50,.24);
+  background: linear-gradient(135deg, rgba(255,255,255,.08), rgba(185,255,50,.12));
+  color: var(--text);
+  font-weight: 950;
+  font-size: .82rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 8px 22px rgba(0,0,0,.18);
+}
+.theme-toggle:before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff, var(--lime) 48%, var(--green) 72%);
+  box-shadow: 0 0 18px rgba(185,255,50,.44);
+}
+body.theme-light .theme-toggle { border-color: rgba(0,120,60,.22); background: linear-gradient(135deg, #fff, #e8efe7); }
+body.theme-light .theme-toggle:before { background: radial-gradient(circle at 35% 35%, #0b1510, #203325 58%, #00e676 72%); }
 .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.brand-logo { width: 56px; height: 56px; border-radius: 50%; box-shadow: 0 0 26px rgba(0, 230, 118, .25); }
+.brand-logo {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  border-radius: 50%;
+  border: 2px solid var(--green);
+  background: #211d1e url("../img/deka-mark.png") 50% 51%/112% 112% no-repeat;
+  box-shadow: 0 0 26px rgba(0, 230, 118, .25);
+}
 h1, h2, h3, p { margin: 0; }
 h1 { font-size: 1.1rem; line-height: 1.05; }
 .brand p, .muted, .panel > p { color: var(--muted); }
@@ -81,15 +115,16 @@ h1 { font-size: 1.1rem; line-height: 1.05; }
 .panel { padding: 16px; }
 
 .intro-panel { align-self: start; }
-.hero-image { height: 210px; border-radius: 9px; margin-bottom: 16px; background: url("../img/hero-stations.svg") center/cover no-repeat; border: 1px solid var(--line); box-shadow: inset 0 0 0 1px rgba(255,255,255,.04); }
+.hero-image { display: none; }
 .intro-panel h2 { font-size: clamp(2.4rem, 4.6vw, 4rem); line-height: .95; margin: 4px 0 10px; letter-spacing: 0; }
 .intro-panel p { line-height: 1.48; margin-bottom: 16px; color: var(--soft); }
 .athletes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
 .athlete-card { display: grid; grid-template-columns: 56px 1fr; gap: 10px; align-items: center; min-width: 0; padding: 10px; border: 1px solid var(--line); border-radius: 9px; background: rgba(255,255,255,.045); }
 .athlete-card.selected { border-color: var(--lime); box-shadow: 0 0 0 3px rgba(185,255,50,.14); }
-.avatar { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; border: 2px solid var(--green); background: linear-gradient(135deg,#35ffd1,#b9ff32); color: #061009; font-weight: 950; }
-.avatar-b { border-color: var(--lime); background: linear-gradient(135deg,#ffb36b,#35ffd1); }
-.avatar img, .face img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; border: 0; background: linear-gradient(135deg,#35ffd1,#b9ff32); color: #061009; font-weight: 950; }
+.avatar-b { background: linear-gradient(135deg,#ffb36b,#35ffd1); }
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.46); object-position: 50% 38%; }
+.face img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.55); object-position: 50% 38%; }
 .athlete-body { min-width: 0; }
 .athlete-body label, .edit-grid label { display: grid; gap: 5px; color: var(--muted); font-size: .82rem; }
 .athlete-body input, .edit-grid input { min-width: 0; width: 100%; border: 1px solid #274430; border-radius: 8px; background: #05100a; color: var(--text); padding: 10px; outline: none; }
@@ -114,6 +149,25 @@ h1 { font-size: 1.1rem; line-height: 1.05; }
 .route-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .station-card { display: grid; grid-template-columns: 46px 1fr; gap: 10px; align-items: start; min-width: 0; padding: 11px; border: 1px solid #2d4635; border-radius: 9px; background: linear-gradient(145deg,#082414,#0b1710 75%); }
 .station-icon { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 9px; border: 2px solid var(--lime); background: #07120b; color: var(--lime); font-size: .72rem; font-weight: 950; }
+.station-art-thumb, .stage-picture {
+  background-image: url("../img/stations-sprite.jpg");
+  background-size: 400% 300%;
+  background-repeat: no-repeat;
+  color: transparent;
+  overflow: hidden;
+}
+.station-art-thumb span, .stage-picture span { opacity: 0; }
+.art-run { background-position: 0% 0%; }
+.art-saco { background-position: 33.333% 0%; }
+.art-remo { background-position: 66.666% 0%; }
+.art-box { background-position: 100% 0%; }
+.art-core { background-position: 0% 50%; }
+.art-ski { background-position: 33.333% 50%; }
+.art-grip { background-position: 66.666% 50%; }
+.art-bike { background-position: 100% 50%; }
+.art-ball { background-position: 0% 100%; }
+.art-push { background-position: 33.333% 100%; }
+.art-20 { background-position: 66.666% 100%; }
 .station-card h3 { font-size: 1rem; line-height: 1.15; }
 .station-num { color: var(--lime); font-weight: 950; font-size: .82rem; }
 .badge { display: inline-block; margin-top: 8px; padding: 5px 8px; border-radius: 999px; background: rgba(0,230,118,.18); border: 1px solid rgba(0,230,118,.45); color: #edfff2; font-size: .78rem; font-weight: 900; }
@@ -127,6 +181,8 @@ h1 { font-size: 1.1rem; line-height: 1.05; }
 .stage { overflow: hidden; }
 .stage-art { min-height: 180px; display: grid; place-items: center; text-align: center; background: radial-gradient(circle at 30% 20%, rgba(185,255,50,.17), transparent 13rem), linear-gradient(145deg,#083719,#07120b); border-bottom: 1px solid var(--line); padding: 18px; }
 .stage-art strong { display: block; font-size: clamp(2.2rem, 7vw, 4.5rem); line-height: .95; }
+.stage-visual { width: min(100%, 760px); display: grid; gap: 12px; justify-items: center; }
+.stage-picture { width: min(100%, 360px); aspect-ratio: 4 / 3; border-radius: 10px; border: 2px solid var(--lime); box-shadow: 0 20px 42px rgba(0,0,0,.32); }
 .stage-body { padding: 16px; }
 .station-head { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
 .station-head h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); line-height: 1; }
@@ -147,16 +203,35 @@ h1 { font-size: 1.1rem; line-height: 1.05; }
 .idx { color: var(--muted); font-weight: 950; }
 .split-time, .result-time, .chart-time { font-weight: 950; white-space: nowrap; }
 .total { font-size: clamp(3.2rem, 12vw, 5.2rem); font-weight: 950; line-height: 1; margin: 6px 0; color: var(--lime); }
+.save-note { margin: 10px 0 14px; color: var(--muted); line-height: 1.35; font-size: .9rem; }
 .charts-panel h3 + h3 { margin-top: 18px; }
 .bar { grid-column: 2 / 4; height: 16px; border-radius: 999px; background: rgba(255,255,255,.15); overflow: hidden; }
 .fill { display: block; height: 100%; width: var(--w); background: linear-gradient(90deg,var(--green),var(--lime)); border-radius: inherit; }
+.rhythm-chart { position: relative; min-height: 190px; margin-top: 12px; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.02)); }
+.rhythm-chart svg { width: 100%; height: 150px; display: block; }
+.rhythm-chart .grid-line, .progress-chart .grid-line { stroke: rgba(255,255,255,.09); stroke-width: 1; }
+.rhythm-chart .area { fill: rgba(185,255,50,.16); }
+.rhythm-chart .line, .progress-chart .line { fill: none; stroke: var(--lime); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.rhythm-chart .dot, .progress-chart .dot { fill: var(--green); stroke: #f4fff7; stroke-width: 2; }
+.rhythm-chart .event-dot { fill: #ffb020; stroke: #061009; stroke-width: 2; }
+.rhythm-chart .event-label { fill: #061009; font-size: 7px; font-weight: 950; stroke: none; }
+.rhythm-legend { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; padding: 0 10px 10px; }
+.rhythm-legend span { min-width: 0; padding: 4px 5px; border-radius: 7px; background: rgba(255,176,32,.12); border: 1px solid rgba(255,176,32,.28); color: var(--muted); font-size: .68rem; font-weight: 850; text-align: center; white-space: nowrap; }
+.rhythm-legend strong { color: var(--orange); }
+.rhythm-empty { display: grid; height: 100%; place-items: center; color: var(--muted); font-weight: 850; }
+.progress-panel:not(:empty) { margin: 14px 0; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: rgba(255,255,255,.035); }
+.progress-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.progress-head span { font-weight: 950; white-space: nowrap; }
+.progress-chart { height: 150px; margin-bottom: 10px; border-radius: 8px; overflow: hidden; background: rgba(0,0,0,.14); }
+.progress-chart svg { display: block; width: 100%; height: 100%; }
+.progress-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-top: 1px solid rgba(255,255,255,.08); color: var(--muted); }
+.progress-row strong { color: var(--text); }
 .delta-good { color: var(--green); }
 .delta-bad { color: var(--red); }
 .modal-back { display: none; position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.62); padding: 18px; place-items: center; }
 .modal-back.active { display: grid; }
 .modal { width: min(100%, 420px); border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); padding: 16px; }
 .edit-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 12px 0; }
-.js-probe { position: fixed; right: 10px; bottom: 10px; z-index: 9999; padding: 7px 10px; border-radius: 999px; background: rgba(0,0,0,.72); color: var(--lime); border: 1px solid rgba(185,255,50,.5); font-size: 12px; font-weight: 950; pointer-events: none; }
 .toast { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 70; transform: translate(-50%,120%); transition: transform .25s ease; padding: 10px 12px; border-radius: 999px; background: #f4fff7; color: #061009; font-weight: 950; box-shadow: var(--shadow); max-width: calc(100% - 28px); }
 .toast.show { transform: translate(-50%,0); }
 canvas { display: none; }
@@ -182,6 +257,11 @@ body.theme-light .panel, body.theme-light .stage { background: rgba(255,255,255,
 body.theme-light .intro-panel p { color: #25352b; }
 body.theme-light .station-card { background: linear-gradient(145deg, #f7fff8, #edf5ec 75%); border-color: #cde0cf; }
 body.theme-light .station-icon { background: #f8fff8; color: #0d7a3a; }
+body.theme-light .station-art-thumb, body.theme-light .stage-picture {
+  background-image: url("../img/stations-sprite.jpg");
+  background-size: 400% 300%;
+  background-repeat: no-repeat;
+}
 body.theme-light .badge { color: #0d3b22; background: rgba(0,230,118,.13); }
 body.theme-light .assignee { background: rgba(10,30,18,.08); }
 body.theme-light .stage-art { background: radial-gradient(circle at 30% 20%, rgba(185,255,50,.24), transparent 13rem), linear-gradient(145deg,#e8fff0,#f7fff8); }
@@ -189,7 +269,6 @@ body.theme-light .timers div, body.theme-light .metrics div { background: rgba(1
 body.theme-light .workout-actions { background: linear-gradient(180deg, transparent, rgba(255,255,255,.96) 35%); }
 body.theme-light .athlete-body input, body.theme-light .edit-grid input { background: #fbfff9; color: var(--text); }
 body.theme-light .modal { background: #fff; }
-body.theme-light .js-probe { background: rgba(255,255,255,.86); color: #0d7a3a; }
 
 @media (min-width: 1180px) {
   .app { padding-left: 0; padding-right: 0; }
@@ -205,11 +284,11 @@ body.theme-light .js-probe { background: rgba(255,255,255,.86); color: #0d7a3a; 
 @media (max-width: 640px) {
   .app { padding-left: 12px; padding-right: 12px; }
   .topbar { align-items: flex-start; gap: 8px; }
-  .brand-logo { width: 50px; height: 50px; }
+  .brand-logo { width: 52px; height: 52px; flex-basis: 52px; }
   h1 { font-size: 1rem; }
   .status { display: none; }
   .panel { padding: 14px; }
-  .hero-image { height: 150px; margin-bottom: 14px; }
+  .hero-image { height: 132px; margin-bottom: 14px; }
   .intro-panel h2 { font-size: 2.45rem; }
   .athletes { grid-template-columns: 1fr; }
   .metrics { grid-template-columns: 1fr 1fr; }
