@@ -164,6 +164,21 @@
     return '<button class="assign-btn' + active + '" type="button" data-assign="' + index + '" data-value="' + value + '">' + escapeHtml(label) + '</button>';
   }
 
+  function currentAssignButton(value, label) {
+    var active = state.assignments[state.current] === value ? " active" : "";
+    return '<button class="assign-btn' + active + '" type="button" data-current-assign="' + value + '">' + escapeHtml(label) + '</button>';
+  }
+
+  function renderCurrentAssignControls(st) {
+    var html = '<p class="assign-title">Persona en esta prueba</p>';
+    if (st.locked) {
+      html += '<div class="current-assign-row"><button class="assign-btn active" disabled type="button">Ambos obligatorio</button></div>';
+    } else {
+      html += '<div class="current-assign-row">' + currentAssignButton("a", shortName("a")) + currentAssignButton("b", shortName("b")) + currentAssignButton("both", "Ambos") + currentAssignButton("", "Sin asignar") + '</div>';
+    }
+    $("currentAssignControls").innerHTML = html;
+  }
+
   function renderRoute() {
     var html = "";
     var i, st, assign;
@@ -185,6 +200,7 @@
     $("stationStandard").textContent = st.standard;
     $("stationCount").textContent = (state.current + 1) + "/" + stations.length;
     $("currentAssignee").innerHTML = assigneeHtml(state.assignments[state.current]);
+    renderCurrentAssignControls(st);
     $("stationArt").innerHTML = '<div class="stage-visual"><div class="stage-picture art-' + escapeHtml(st.kind.toLowerCase()) + '"><span>' + escapeHtml(st.kind) + '</span></div><strong>' + escapeHtml(st.title) + '</strong><p class="muted">' + escapeHtml(st.detail) + '</p></div>';
     renderSplits();
   }
@@ -383,12 +399,24 @@
   }
   function readPhoto(id, file) { if (!file) return; var reader = new FileReader(); reader.onload = function () { state.photos[id] = String(reader.result || ""); renderPeople(); renderRoute(); }; reader.readAsDataURL(file); }
 
-  function handleRouteTap(event) { var node = event.target || event.srcElement; while (node && node !== document && !node.getAttribute("data-assign")) node = node.parentNode; if (!node || node === document) return; var index = Number(node.getAttribute("data-assign")); var value = node.getAttribute("data-value") || ""; if (stations[index].locked) return; state.assignments[index] = value; renderRoute(); if (state.active) renderStation(); }
+  function handleRouteTap(event) { var node = event.target || event.srcElement; while (node && node !== document && !node.getAttribute("data-assign")) node = node.parentNode; if (!node || node === document) return; var index = Number(node.getAttribute("data-assign")); var value = node.getAttribute("data-value") || ""; if (stations[index].locked) return; state.assignments[index] = value; renderRoute(); if (state.active) { renderStation(); saveActiveSession(); } }
+
+  function handleCurrentAssignTap(event) {
+    var node = event.target || event.srcElement;
+    while (node && node !== document && node.getAttribute("data-current-assign") === null) node = node.parentNode;
+    if (!node || node === document) return;
+    if (!state.active || stations[state.current].locked) return;
+    state.assignments[state.current] = node.getAttribute("data-current-assign") || "";
+    renderRoute();
+    renderStation();
+    saveActiveSession();
+    toast("Persona actualizada");
+  }
 
   function setupEvents() {
     bind($("themeToggle"), function () { applyTheme(document.body.className === "theme-light" ? "dark" : "light"); });
     bind($("startBtn"), start); bind($("resumeBtn"), resumeSaved); bind($("nextBtn"), next); bind($("prevBtn"), previous); bind($("pauseBtn"), togglePause); bind($("resetBtn"), reset); bind($("newBtn"), reset); bind($("editCurrentBtn"), function () { openEdit(state.current); }); bind($("saveEditBtn"), saveEdit); bind($("cancelEditBtn"), closeEdit); bind($("xmlBtn"), downloadXml); bind($("jsonBtn"), downloadJson); bind($("pngBtn"), downloadPng); bind($("comparePngBtn"), downloadComparePng); bind($("copyBtn"), copySummary); bind($("loadLastBtn"), loadLast);
-    $("routeList").addEventListener("click", handleRouteTap, false); $("routeList").addEventListener("touchend", handleRouteTap, false); $("importFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("resultImportFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("progressFiles").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("progressFilesResults").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("photoA").addEventListener("change", function (e) { readPhoto("a", e.target.files[0]); }, false); $("photoB").addEventListener("change", function (e) { readPhoto("b", e.target.files[0]); }, false); $("nameA").addEventListener("input", renderRoute, false); $("nameB").addEventListener("input", renderRoute, false);
+    $("routeList").addEventListener("click", handleRouteTap, false); $("routeList").addEventListener("touchend", handleRouteTap, false); $("currentAssignControls").addEventListener("click", handleCurrentAssignTap, false); $("currentAssignControls").addEventListener("touchend", handleCurrentAssignTap, false); $("importFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("resultImportFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("progressFiles").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("progressFilesResults").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("photoA").addEventListener("change", function (e) { readPhoto("a", e.target.files[0]); }, false); $("photoB").addEventListener("change", function (e) { readPhoto("b", e.target.files[0]); }, false); $("nameA").addEventListener("input", renderRoute, false); $("nameB").addEventListener("input", renderRoute, false);
     var adjusters = document.querySelectorAll("[data-adjust]"); var i; for (i = 0; i < adjusters.length; i += 1) bind(adjusters[i], function (event) { var target = event.target || event.srcElement; adjust(Number(target.getAttribute("data-adjust")) || 0); });
     window.addEventListener("pagehide", saveActiveSession, false);
     window.addEventListener("beforeunload", saveActiveSession, false);
