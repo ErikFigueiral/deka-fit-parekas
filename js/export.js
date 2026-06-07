@@ -195,7 +195,7 @@
     var canvas = document.getElementById("exportCanvas");
     var ctx = canvas.getContext("2d");
     var total = totalOf(session), prevTotal = totalOf(previous);
-    var i, y, now, prev, diff, max, wPrev, wNow;
+    var i, y, now, prev, diff, max, wPrev, wNow, gx, gy, gw, gh, ptsNow, ptsPrev, x, yn, yp, x2, yn2, yp2, now2, prev2;
     canvas.width = 1080;
     canvas.height = 1900;
     ctx.fillStyle = "#061009";
@@ -213,7 +213,66 @@
     ctx.fillStyle = "#aebcaf";
     ctx.font = "800 24px system-ui, sans-serif";
     ctx.fillText("Anterior " + formatTime(prevTotal) + "   Actual " + formatTime(total), 60, 262);
-    y = 340;
+
+    gx = 60; gy = 310; gw = 960; gh = 230;
+    max = 0;
+    for (i = 0; i < session.splits.length; i += 1) {
+      now = Number(session.splits[i].ms) || 0;
+      prev = previous.splits[i] ? Number(previous.splits[i].ms) || 0 : 0;
+      if (now > max) max = now;
+      if (prev > max) max = prev;
+    }
+    max = Math.max(max, 1);
+    ctx.fillStyle = "#0b1510";
+    ctx.fillRect(gx, gy, gw, gh);
+    ctx.strokeStyle = "rgba(244,255,247,.12)";
+    ctx.lineWidth = 1;
+    for (i = 1; i < 4; i += 1) {
+      ctx.beginPath();
+      ctx.moveTo(gx, gy + i * gh / 4);
+      ctx.lineTo(gx + gw, gy + i * gh / 4);
+      ctx.stroke();
+    }
+    ptsNow = [];
+    ptsPrev = [];
+    for (i = 0; i < session.splits.length; i += 1) {
+      now = Number(session.splits[i].ms) || 0;
+      prev = previous.splits[i] ? Number(previous.splits[i].ms) || 0 : 0;
+      x = gx + 34 + (gw - 68) * (i / Math.max(session.splits.length - 1, 1));
+      yn = gy + 26 + (gh - 52) * (1 - now / max);
+      yp = gy + 26 + (gh - 52) * (1 - prev / max);
+      ptsNow.push({ x: x, y: yn });
+      ptsPrev.push({ x: x, y: yp });
+    }
+    for (i = 0; i < ptsNow.length - 1; i += 1) {
+      now = Number(session.splits[i].ms) || 0;
+      prev = previous.splits[i] ? Number(previous.splits[i].ms) || 0 : 0;
+      now2 = Number(session.splits[i + 1].ms) || 0;
+      prev2 = previous.splits[i + 1] ? Number(previous.splits[i + 1].ms) || 0 : 0;
+      ctx.fillStyle = now + now2 <= prev + prev2 ? "rgba(0,230,118,.22)" : "rgba(255,95,104,.24)";
+      ctx.beginPath();
+      ctx.moveTo(ptsPrev[i].x, ptsPrev[i].y);
+      ctx.lineTo(ptsPrev[i + 1].x, ptsPrev[i + 1].y);
+      ctx.lineTo(ptsNow[i + 1].x, ptsNow[i + 1].y);
+      ctx.lineTo(ptsNow[i].x, ptsNow[i].y);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.beginPath();
+    for (i = 0; i < ptsPrev.length; i += 1) { if (i) ctx.lineTo(ptsPrev[i].x, ptsPrev[i].y); else ctx.moveTo(ptsPrev[i].x, ptsPrev[i].y); }
+    ctx.strokeStyle = "rgba(244,255,247,.62)";
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    ctx.beginPath();
+    for (i = 0; i < ptsNow.length; i += 1) { if (i) ctx.lineTo(ptsNow[i].x, ptsNow[i].y); else ctx.moveTo(ptsNow[i].x, ptsNow[i].y); }
+    ctx.strokeStyle = "#b9ff32";
+    ctx.lineWidth = 6;
+    ctx.stroke();
+    ctx.fillStyle = "#aebcaf";
+    ctx.font = "800 20px system-ui, sans-serif";
+    ctx.fillText("gris anterior · lima actual · verde mejora · rojo empeora", 70, gy + gh - 18);
+
+    y = 600;
     for (i = 0; i < session.splits.length; i += 1) {
       now = Number(session.splits[i].ms) || 0;
       prev = previous.splits[i] ? Number(previous.splits[i].ms) || 0 : 0;

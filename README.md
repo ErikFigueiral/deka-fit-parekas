@@ -14,24 +14,24 @@ Cronometro web para Deka Fit por parejas, pensado para movil y escritorio, publi
 8. Si te equivocas, usa **Volver prueba** o **Editar tiempo**.
 9. Si paras un momento, pulsa **Pausar**. El boton cambia de color para que se vea claro.
 10. Al terminar salen el total, parciales, ritmo y picos, esfuerzo por persona, peso de cada prueba y comparativa si cargaste XML.
-11. Pulsa **Guardar XML** para guardar tus tiempos y usarlos otro dia como comparativa.
+11. Pulsa **Guardar intento** para guardar tus tiempos y usarlos otro dia como comparativa.
 12. Pulsa **PNG normal** o **PNG comparativo** si quieres mandar el resumen por WhatsApp.
 
 ## Como comparar con una sesion anterior
 
-1. En una sesion terminada descarga el XML.
+1. En una sesion terminada guarda el intento.
 2. Otro dia abre la web.
 3. Pulsa **Cargar anterior**.
-4. Selecciona ese XML.
+4. Selecciona el archivo guardado.
 5. Al acabar la nueva prueba veras donde mejoras y donde empeoras.
-6. Tambien puedes pulsar **Comparar XML** en el resumen si prefieres cargar el anterior al final.
+6. Tambien puedes pulsar **Comparar anterior** en el resumen si prefieres cargar el intento al final.
 7. Las mejoras salen en verde y los empeoramientos en rojo.
 
-## Como ver progreso con varios XML
+## Como ver progreso con varios intentos
 
-1. Guarda un XML cada vez que hagas la prueba.
-2. Pulsa **Progreso XML**.
-3. Selecciona varios XML a la vez.
+1. Guarda un intento cada vez que hagas la prueba.
+2. Pulsa **Ver progreso**.
+3. Selecciona varios archivos guardados a la vez.
 4. La web los ordena por fecha y dibuja una grafica de progreso del total.
 
 ## Importante
@@ -40,7 +40,7 @@ Esta app no tiene backend ni base de datos. Eso es intencionado para que sea fac
 
 - Los datos se guardan en el movil con `localStorage`.
 - Si el movil se duerme o recargas durante la prueba, `workout.html` recupera la sesion y calcula el tiempo con reloj real.
-- Las sesiones importantes se guardan descargando XML.
+- Las sesiones importantes se guardan descargando un archivo `.xml`.
 - Las fotos no se suben a ningun servidor.
 - Si cambias de movil, conserva el XML descargado.
 

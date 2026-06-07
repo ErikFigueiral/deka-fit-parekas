@@ -33,7 +33,7 @@
         <section class="panel intro-panel">
           <div class="hero-image" aria-hidden="true"></div>
           <h2>Control de prueba</h2>
-          <p>Introduce los nombres, revisa el recorrido y empieza el cronometro. Si ya tienes un XML anterior, puedes cargarlo para ver mejoras al terminar.</p>
+          <p>Introduce los nombres, revisa el recorrido y empieza el cronometro. Si ya tienes un intento anterior guardado, puedes cargarlo para ver mejoras al terminar.</p>
 
           <div class="athletes">
             <article class="athlete-card" id="cardA">
@@ -60,8 +60,8 @@
           <div class="actions">
             <button class="btn primary" id="startBtn" type="button">Empezar</button>
             <button class="btn" id="resumeBtn" type="button" hidden>Reanudar prueba</button>
-            <label class="btn file-btn">Cargar anterior<input id="importFile" type="file" accept=".xml,.json,application/xml,text/xml,application/json"></label>
-            <label class="btn file-btn">Progreso XML<input id="progressFiles" type="file" multiple accept=".xml,application/xml,text/xml"></label>
+            <label class="btn file-btn">Cargar intento<input id="importFile" type="file" accept=".xml,.json,application/xml,text/xml,application/json"></label>
+            <label class="btn file-btn">Ver progreso<input id="progressFiles" type="file" multiple accept=".xml,application/xml,text/xml"></label>
             <button class="btn" id="loadLastBtn" type="button">Ultima guardada</button>
           </div>
         </section>
@@ -136,20 +136,20 @@
           <div class="actions">
             <button class="btn primary" id="pngBtn" type="button">PNG normal</button>
             <button class="btn primary" id="comparePngBtn" type="button">PNG comparativo</button>
-            <button class="btn primary" id="xmlBtn" type="button">Guardar XML</button>
-            <label class="btn file-btn">Comparar XML<input id="resultImportFile" type="file" accept=".xml,.json,application/xml,text/xml,application/json"></label>
-            <label class="btn file-btn">Progreso XML<input id="progressFilesResults" type="file" multiple accept=".xml,application/xml,text/xml"></label>
+            <button class="btn primary" id="xmlBtn" type="button">Guardar intento</button>
+            <label class="btn file-btn">Comparar anterior<input id="resultImportFile" type="file" accept=".xml,.json,application/xml,text/xml,application/json"></label>
+            <label class="btn file-btn">Ver progreso<input id="progressFilesResults" type="file" multiple accept=".xml,application/xml,text/xml"></label>
             <button class="btn" id="copyBtn" type="button">Texto</button>
             <button class="btn" id="newBtn" type="button">Empezar</button>
           </div>
-          <p class="save-note">Guarda el XML para conservar este intento. Podras cargarlo otro dia y comparar tiempos, personas y mejoras.</p>
+          <p class="save-note">Guarda este intento para conservar tus tiempos. Podras cargarlo otro dia y comparar marcas, personas y mejoras.</p>
           <div id="resultSplits"></div>
         </section>
 
         <aside class="panel charts-panel">
           <h3>Ritmo y picos</h3>
           <div class="rhythm-chart" id="rhythmBox"></div>
-          <h3>Comparativa XML</h3>
+          <h3>Comparativa</h3>
           <div id="compareBox"></div>
           <div class="progress-panel"></div>
           <h3>Esfuerzo por persona</h3>

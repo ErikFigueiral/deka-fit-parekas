@@ -264,6 +264,7 @@
     if (!box) return;
     if (!state.previous || !state.previous.splits) { box.innerHTML = '<p class="muted compare-empty">Carga un intento anterior para ver en que pruebas mejoraste o empeoraste.</p>'; return; }
     max = Math.max(totalOf(session), totalOf(state.previous), 1);
+    html += renderCompareGraph(session, state.previous);
     html += compareRow("TOT", "Total", totalOf(session), totalOf(state.previous), max);
     for (i = 0; i < session.splits.length; i += 1) {
       now = Number(session.splits[i].ms) || 0;
@@ -271,6 +272,41 @@
       html += compareRow(pad2(i + 1), session.splits[i].title, now, prev, Math.max(now, prev, 1));
     }
     box.innerHTML = html;
+  }
+
+  function renderCompareGraph(session, previous) {
+    var max = 0, i, now, prev, x, yNow, yPrev, w = 320, h = 150, pad = 24, nowPts = "", prevPts = "", areas = "", ticks = "", tickY, tickMs, x2, yNow2, yPrev2, now2, prev2, color;
+    for (i = 0; i < session.splits.length; i += 1) {
+      now = Number(session.splits[i].ms) || 0;
+      prev = previous.splits[i] ? Number(previous.splits[i].ms) || 0 : 0;
+      if (now > max) max = now;
+      if (prev > max) max = prev;
+    }
+    max = Math.max(max, 1);
+    for (i = 0; i < 3; i += 1) {
+      tickMs = max * (1 - i / 2);
+      tickY = pad + (h - pad * 2) * (i / 2);
+      ticks += '<text class="scale-label" x="4" y="' + (tickY + 4).toFixed(1) + '">' + formatTime(tickMs) + '</text>';
+    }
+    for (i = 0; i < session.splits.length; i += 1) {
+      now = Number(session.splits[i].ms) || 0;
+      prev = previous.splits[i] ? Number(previous.splits[i].ms) || 0 : 0;
+      x = pad + (w - pad * 2) * (i / Math.max(session.splits.length - 1, 1));
+      yNow = pad + (h - pad * 2) * (1 - now / max);
+      yPrev = pad + (h - pad * 2) * (1 - prev / max);
+      nowPts += (i ? " " : "") + x.toFixed(1) + "," + yNow.toFixed(1);
+      prevPts += (i ? " " : "") + x.toFixed(1) + "," + yPrev.toFixed(1);
+      if (i < session.splits.length - 1) {
+        now2 = Number(session.splits[i + 1].ms) || 0;
+        prev2 = previous.splits[i + 1] ? Number(previous.splits[i + 1].ms) || 0 : 0;
+        x2 = pad + (w - pad * 2) * ((i + 1) / Math.max(session.splits.length - 1, 1));
+        yNow2 = pad + (h - pad * 2) * (1 - now2 / max);
+        yPrev2 = pad + (h - pad * 2) * (1 - prev2 / max);
+        color = now + now2 <= prev + prev2 ? "good-area" : "bad-area";
+        areas += '<polygon class="' + color + '" points="' + x.toFixed(1) + ',' + yPrev.toFixed(1) + ' ' + x2.toFixed(1) + ',' + yPrev2.toFixed(1) + ' ' + x2.toFixed(1) + ',' + yNow2.toFixed(1) + ' ' + x.toFixed(1) + ',' + yNow.toFixed(1) + '"></polygon>';
+      }
+    }
+    return '<div class="compare-graph"><svg viewBox="0 0 320 150" role="img" aria-label="Grafica comparativa"><line class="grid-line" x1="24" y1="24" x2="302" y2="24"></line><line class="grid-line" x1="24" y1="75" x2="302" y2="75"></line><line class="grid-line" x1="24" y1="126" x2="302" y2="126"></line>' + ticks + areas + '<polyline class="prev-line" points="' + prevPts + '"></polyline><polyline class="now-line" points="' + nowPts + '"></polyline></svg><div class="compare-legend"><span><i class="prev-key"></i>Anterior</span><span><i class="now-key"></i>Actual</span><span><i class="good-key"></i>Mejora</span><span><i class="bad-key"></i>Empeora</span></div></div>';
   }
 
   function compareRow(idx, title, now, prev, max) {
@@ -308,7 +344,7 @@
     diff = Math.abs(last - first);
     cls = last <= first ? "delta-good" : "delta-bad";
     label = list.length > 1 ? (last <= first ? "Mejora: " : "Empeora: ") + formatTime(diff) : "Un intento cargado";
-    var html = '<div class="progress-head"><strong>Progreso con XML</strong><span class="' + cls + '">' + label + '</span></div><div class="progress-chart"><svg viewBox="0 0 320 150" role="img" aria-label="Evolucion del total"><line class="grid-line" x1="18" y1="18" x2="302" y2="18"></line><line class="grid-line" x1="18" y1="70" x2="302" y2="70"></line><line class="grid-line" x1="18" y1="122" x2="302" y2="122"></line><polyline class="line" points="' + points + '"></polyline>' + dots + '</svg></div>' + rows;
+    var html = '<div class="progress-head"><strong>Progreso guardado</strong><span class="' + cls + '">' + label + '</span></div><div class="progress-chart"><svg viewBox="0 0 320 150" role="img" aria-label="Evolucion del total"><line class="grid-line" x1="18" y1="18" x2="302" y2="18"></line><line class="grid-line" x1="18" y1="70" x2="302" y2="70"></line><line class="grid-line" x1="18" y1="122" x2="302" y2="122"></line><polyline class="line" points="' + points + '"></polyline>' + dots + '</svg></div>' + rows;
     for (b = 0; b < boxes.length; b += 1) boxes[b].innerHTML = html;
   }
 
@@ -335,10 +371,10 @@
           } catch (e) {}
           left -= 1;
           if (left === 0) {
-            if (!list.length) { toast("No se pudieron leer esos XML"); return; }
+            if (!list.length) { toast("No se pudieron leer esos intentos"); return; }
             state.progress = list;
             renderProgress();
-            toast(list.length + " XML cargados para progreso");
+            toast(list.length + " intentos cargados");
           }
         };
         reader.readAsText(file);
