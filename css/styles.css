@@ -95,7 +95,7 @@ body.theme-light .theme-toggle:before { background: radial-gradient(circle at 35
   flex: 0 0 58px;
   border-radius: 50%;
   border: 2px solid var(--green);
-  background: #211d1e url("../img/deka-mark.png") 50% 51%/112% 112% no-repeat;
+  background: #211d1e url("../img/deka-mark.png") 50% 49%/124% 124% no-repeat;
   box-shadow: 0 0 26px rgba(0, 230, 118, .25);
 }
 h1, h2, h3, p { margin: 0; }
@@ -123,8 +123,8 @@ h1 { font-size: 1.1rem; line-height: 1.05; }
 .athlete-card.selected { border-color: var(--lime); box-shadow: 0 0 0 3px rgba(185,255,50,.14); }
 .avatar { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; border: 0; background: linear-gradient(135deg,#35ffd1,#b9ff32); color: #061009; font-weight: 950; }
 .avatar-b { background: linear-gradient(135deg,#ffb36b,#35ffd1); }
-.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.46); object-position: 50% 38%; }
-.face img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.55); object-position: 50% 38%; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(2.05); object-position: 50% 31%; }
+.face img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(2.15); object-position: 50% 31%; }
 .athlete-body { min-width: 0; }
 .athlete-body label, .edit-grid label { display: grid; gap: 5px; color: var(--muted); font-size: .82rem; }
 .athlete-body input, .edit-grid input { min-width: 0; width: 100%; border: 1px solid #274430; border-radius: 8px; background: #05100a; color: var(--text); padding: 10px; outline: none; }
@@ -215,6 +215,7 @@ h1 { font-size: 1.1rem; line-height: 1.05; }
 .rhythm-chart .dot, .progress-chart .dot { fill: var(--green); stroke: #f4fff7; stroke-width: 2; }
 .rhythm-chart .event-dot { fill: #ffb020; stroke: #061009; stroke-width: 2; }
 .rhythm-chart .event-label { fill: #061009; font-size: 7px; font-weight: 950; stroke: none; }
+.rhythm-chart .scale-label { fill: var(--muted); font-size: 8px; font-weight: 850; }
 .rhythm-legend { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; padding: 0 10px 10px; }
 .rhythm-legend span { min-width: 0; padding: 4px 5px; border-radius: 7px; background: rgba(255,176,32,.12); border: 1px solid rgba(255,176,32,.28); color: var(--muted); font-size: .68rem; font-weight: 850; text-align: center; white-space: nowrap; }
 .rhythm-legend strong { color: var(--orange); }

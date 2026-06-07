@@ -197,9 +197,14 @@
   function renderEffort(session) { var a = 0, b = 0, i, ms, p; for (i = 0; i < session.splits.length; i += 1) { ms = Number(session.splits[i].ms) || 0; p = assignmentPeople(session.assignments[i]); if (p.length === 2) { a += ms / 2; b += ms / 2; } else if (p[0] === "a") a += ms; else if (p[0] === "b") b += ms; } var total = Math.max(a + b, 1); $("effortBox").innerHTML = chartRow("P1", personName("a"), a, a / total * 100) + chartRow("P2", personName("b"), b, b / total * 100); }
   function chartRow(idx, name, ms, width) { return '<div class="chart-row"><span class="idx">' + idx + '</span><span class="chart-name">' + escapeHtml(name) + '</span><span class="chart-time">' + formatTime(ms) + '</span><span class="bar"><span class="fill" style="--w:' + width + '%"></span></span></div>'; }
   function renderRhythm(session) {
-    var max = 0, i, ms, points = "", area = "", labels = "", legend = "", x, y, w = 320, h = 150, pad = 18, kind, label;
+    var max = 0, i, ms, points = "", area = "", labels = "", legend = "", scale = "", x, y, w = 320, h = 150, pad = 24, kind, label, tickMs, tickY;
     for (i = 0; i < session.splits.length; i += 1) { ms = Number(session.splits[i].ms) || 0; if (ms > max) max = ms; }
     if (!max) { $("rhythmBox").innerHTML = '<div class="rhythm-empty">Sin tiempos todavia</div>'; return; }
+    for (i = 0; i < 3; i += 1) {
+      tickMs = max * (1 - i / 2);
+      tickY = pad + (h - pad * 2) * (i / 2);
+      scale += '<text class="scale-label" x="4" y="' + (tickY + 4).toFixed(1) + '">' + formatTime(tickMs) + '</text>';
+    }
     for (i = 0; i < session.splits.length; i += 1) {
       ms = Number(session.splits[i].ms) || 0;
       x = pad + (w - pad * 2) * (i / Math.max(session.splits.length - 1, 1));
@@ -213,7 +218,7 @@
         legend += '<span><strong>' + pad2(i + 1) + '</strong> ' + escapeHtml(label) + '</span>';
       }
     }
-    $("rhythmBox").innerHTML = '<svg viewBox="0 0 320 150" role="img" aria-label="Grafica de ritmo por prueba"><line class="grid-line" x1="18" y1="18" x2="302" y2="18"></line><line class="grid-line" x1="18" y1="75" x2="302" y2="75"></line><line class="grid-line" x1="18" y1="132" x2="302" y2="132"></line><polygon class="area" points="18,132 ' + points + ' 302,132"></polygon><polyline class="line" points="' + points + '"></polyline>' + area + labels + '</svg><div class="rhythm-legend">' + legend + '</div>';
+    $("rhythmBox").innerHTML = '<svg viewBox="0 0 320 150" role="img" aria-label="Grafica de ritmo por prueba"><line class="grid-line" x1="24" y1="24" x2="302" y2="24"></line><line class="grid-line" x1="24" y1="75" x2="302" y2="75"></line><line class="grid-line" x1="24" y1="126" x2="302" y2="126"></line>' + scale + '<polygon class="area" points="24,126 ' + points + ' 302,126"></polygon><polyline class="line" points="' + points + '"></polyline>' + area + labels + '</svg><div class="rhythm-legend">' + legend + '</div>';
   }
   function renderChart(session) { var total = Math.max(totalOf(session), 1), html = "", i, ms, percent, width; for (i = 0; i < session.splits.length; i += 1) { ms = Number(session.splits[i].ms) || 0; percent = Math.round(ms / total * 100); width = ms ? Math.max(1, ms / total * 100) : 0; html += '<div class="chart-row"><span class="idx">' + pad2(i + 1) + '</span><span class="chart-name">' + escapeHtml(session.splits[i].title) + '<small>' + escapeHtml(assignmentLabel(session.assignments[i])) + '</small></span><span class="chart-time">' + formatTime(ms) + ' ' + percent + '%</span><span class="bar"><span class="fill" style="--w:' + width + '%"></span></span></div>'; } $("chartBox").innerHTML = html; }
 
