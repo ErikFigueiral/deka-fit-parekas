@@ -54,11 +54,22 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 10px 0 16px;
+  padding: 10px 0 17px;
   margin-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, .1);
-  background: linear-gradient(180deg, rgba(6, 16, 9, .97), rgba(6, 16, 9, .86));
+  border-bottom: 1px solid rgba(185, 255, 50, .14);
+  background: linear-gradient(180deg, rgba(6, 16, 9, .98), rgba(6, 16, 9, .92) 74%, rgba(6, 16, 9, .76));
   backdrop-filter: blur(10px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .18), inset 0 -1px 0 rgba(255,255,255,.035);
+}
+.topbar:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -12px;
+  height: 12px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(6,16,9,.34), transparent);
 }
 .top-actions { display: flex; align-items: center; gap: 8px; }
 .theme-toggle {
@@ -88,20 +99,20 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 }
 body.theme-light .theme-toggle { border-color: rgba(0,120,60,.22); background: linear-gradient(135deg, #fff, #e8efe7); }
 body.theme-light .theme-toggle:before { background: radial-gradient(circle at 35% 35%, #0b1510, #203325 58%, #00e676 72%); }
-.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
 .brand-logo {
-  width: 58px;
-  height: 58px;
-  flex: 0 0 58px;
-  border-radius: 50%;
-  border: 2px solid var(--green);
-  background: #211d1e url("../img/deka-mark.png") 50% 49%/124% 124% no-repeat;
-  box-shadow: 0 0 26px rgba(0, 230, 118, .25);
+  width: 66px;
+  height: 66px;
+  flex: 0 0 66px;
+  border-radius: 0;
+  background: url("../img/deka-fit-logo.png") center/132% auto no-repeat;
+  box-shadow: 0 0 24px rgba(0, 230, 118, .12);
 }
 h1, h2, h3, p { margin: 0; }
 h1 { font-size: 1.1rem; line-height: 1.05; }
 .brand p, .muted, .panel > p { color: var(--muted); }
 .status { padding: 8px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: var(--muted); font-weight: 850; font-size: .84rem; white-space: nowrap; }
+.status:empty { display: none; }
 .status.running { color: var(--lime); border-color: rgba(185,255,50,.45); }
 .status.paused { color: var(--orange); border-color: rgba(255,176,32,.55); }
 
@@ -253,7 +264,11 @@ body.theme-light {
     radial-gradient(circle at 95% 10%, rgba(185, 255, 50, .18), transparent 22rem),
     linear-gradient(145deg, #f7faf5 0%, #edf4ea 54%, #f9fbf7 100%);
 }
-body.theme-light .topbar { background: linear-gradient(180deg, rgba(247,250,245,.97), rgba(247,250,245,.84)); }
+body.theme-light .topbar {
+  border-bottom-color: rgba(0, 120, 60, .14);
+  background: linear-gradient(180deg, rgba(247,250,245,.98), rgba(247,250,245,.92) 74%, rgba(247,250,245,.76));
+}
+body.theme-light .topbar:after { background: linear-gradient(180deg, rgba(54, 105, 70, .12), transparent); }
 body.theme-light .panel, body.theme-light .stage { background: rgba(255,255,255,.93); }
 body.theme-light .intro-panel p { color: #25352b; }
 body.theme-light .station-card { background: linear-gradient(145deg, #f7fff8, #edf5ec 75%); border-color: #cde0cf; }
@@ -271,9 +286,143 @@ body.theme-light .workout-actions { background: linear-gradient(180deg, transpar
 body.theme-light .athlete-body input, body.theme-light .edit-grid input { background: #fbfff9; color: var(--text); }
 body.theme-light .modal { background: #fff; }
 
+/* Professional UI polish: calmer surfaces, stronger timing focus, Synergym-like lime accents. */
+.app { padding-top: max(14px, env(safe-area-inset-top)); }
+.topbar {
+  padding: 12px 0 18px;
+  margin-bottom: 18px;
+}
+.brand-logo {
+  width: 72px;
+  height: 72px;
+  flex-basis: 72px;
+  border-radius: 9px;
+  background-color: #fff;
+  background-size: 86% auto;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .28), 0 0 0 1px rgba(255,255,255,.12);
+}
+body.theme-light .brand-logo {
+  background-color: transparent;
+  background-size: 94% auto;
+  box-shadow: none;
+}
+h1 { font-size: 1.08rem; font-weight: 950; letter-spacing: 0; }
+.brand p { font-size: .94rem; line-height: 1.18; }
+.panel, .stage {
+  border-color: rgba(185, 255, 50, .13);
+  border-radius: 12px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .30);
+}
+body.theme-light .panel, body.theme-light .stage {
+  border-color: rgba(16, 25, 20, .10);
+  box-shadow: 0 16px 38px rgba(15, 35, 23, .10);
+}
+.intro-panel h2 {
+  font-size: clamp(2.25rem, 4vw, 3.45rem);
+  letter-spacing: 0;
+}
+.intro-panel p, .route-panel > p {
+  max-width: 62ch;
+}
+.athlete-card {
+  border-radius: 11px;
+  background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.03));
+}
+.athlete-card.selected {
+  border-color: rgba(185,255,50,.86);
+  box-shadow: 0 0 0 2px rgba(185,255,50,.18), inset 0 0 0 1px rgba(255,255,255,.04);
+}
+.athlete-body input, .edit-grid input {
+  min-height: 44px;
+  border-radius: 10px;
+}
+.btn, .small-btn, .assign-btn {
+  border-radius: 10px;
+  transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease, background .14s ease;
+}
+.btn:active, .small-btn:active, .assign-btn:active { transform: translateY(1px) scale(.99); }
+.primary {
+  box-shadow: 0 10px 24px rgba(0, 230, 118, .22);
+}
+.theme-toggle {
+  width: 88px;
+  min-height: 40px;
+  padding-left: 38px;
+}
+.metrics div {
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
+}
+.station-card {
+  border-radius: 12px;
+  border-color: rgba(185,255,50,.14);
+  background: linear-gradient(145deg, rgba(0,230,118,.12), rgba(10,18,13,.88) 54%, rgba(7,13,9,.96));
+}
+.station-icon {
+  border-radius: 10px;
+  border-color: rgba(185,255,50,.92);
+  box-shadow: 0 8px 18px rgba(0,0,0,.24);
+}
+.badge {
+  background: rgba(0, 230, 118, .13);
+  border-color: rgba(0, 230, 118, .34);
+}
+.assignee {
+  background: rgba(255,255,255,.075);
+}
+.stage-art {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(185,255,50,.22), transparent 14rem),
+    linear-gradient(145deg, #072313, #07110b 68%);
+}
+.stage-picture {
+  border-radius: 12px;
+  border-color: rgba(185,255,50,.82);
+}
+.timers div {
+  border-radius: 12px;
+  background: rgba(255,255,255,.052);
+}
+.timers strong, .total {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .01em;
+}
+.workout-actions {
+  border-radius: 14px 14px 0 0;
+}
+.workout-actions .next-btn {
+  min-height: 68px;
+  font-size: 1.18rem;
+}
+.rhythm-chart, .progress-panel:not(:empty), .progress-chart {
+  border-radius: 12px;
+}
+body.theme-light .station-card {
+  background: linear-gradient(145deg, #fbfffb, #f0f7ee 72%);
+  border-color: rgba(14, 95, 45, .12);
+}
+body.theme-light .badge {
+  background: rgba(0, 230, 118, .12);
+  border-color: rgba(0, 120, 60, .18);
+}
+body.theme-light .assignee {
+  background: rgba(12, 32, 20, .075);
+}
+body.theme-light .stage-art {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(185,255,50,.30), transparent 14rem),
+    linear-gradient(145deg, #effff3, #fbfff9 68%);
+}
+body.theme-light .rhythm-chart,
+body.theme-light .progress-chart {
+  background: linear-gradient(180deg, rgba(6,16,9,.035), rgba(6,16,9,.015));
+}
+
 @media (min-width: 1180px) {
   .app { padding-left: 0; padding-right: 0; }
   .route-list { grid-template-columns: repeat(2, minmax(280px, 1fr)); }
+  .intro-panel h2 { font-size: 3.2rem; }
+  .panel { padding: 18px; }
 }
 
 @media (max-width: 920px) {
@@ -285,7 +434,8 @@ body.theme-light .modal { background: #fff; }
 @media (max-width: 640px) {
   .app { padding-left: 12px; padding-right: 12px; }
   .topbar { align-items: flex-start; gap: 8px; }
-  .brand-logo { width: 52px; height: 52px; flex-basis: 52px; }
+  .brand-logo { width: 62px; height: 62px; flex-basis: 62px; background-position: center; background-size: 86% auto; }
+  body.theme-light .brand-logo { background-size: 94% auto; }
   h1 { font-size: 1rem; }
   .status { display: none; }
   .panel { padding: 14px; }
