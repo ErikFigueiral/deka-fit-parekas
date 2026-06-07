@@ -17,7 +17,6 @@
     elapsedBefore: 0,
     splits: [],
     assignments: [],
-    selected: "a",
     editIndex: -1,
     tickId: 0,
     previous: null,
@@ -156,8 +155,8 @@
   function renderPeople() {
     $("avatarA").innerHTML = '<img src="' + (state.photos.a || defaultPhotos.a) + '" alt="">';
     $("avatarB").innerHTML = '<img src="' + (state.photos.b || defaultPhotos.b) + '" alt="">';
-    $("cardA").className = "athlete-card" + (state.selected === "a" ? " selected" : "");
-    $("cardB").className = "athlete-card" + (state.selected === "b" ? " selected" : "");
+    $("cardA").className = "athlete-card";
+    $("cardB").className = "athlete-card";
   }
 
   function assignButton(index, value, label) {
@@ -352,7 +351,7 @@
 
   function setupEvents() {
     bind($("themeToggle"), function () { applyTheme(document.body.className === "theme-light" ? "dark" : "light"); });
-    bind($("startBtn"), start); bind($("resumeBtn"), resumeSaved); bind($("nextBtn"), next); bind($("prevBtn"), previous); bind($("pauseBtn"), togglePause); bind($("resetBtn"), reset); bind($("newBtn"), reset); bind($("editCurrentBtn"), function () { openEdit(state.current); }); bind($("saveEditBtn"), saveEdit); bind($("cancelEditBtn"), closeEdit); bind($("xmlBtn"), downloadXml); bind($("jsonBtn"), downloadJson); bind($("pngBtn"), downloadPng); bind($("comparePngBtn"), downloadComparePng); bind($("copyBtn"), copySummary); bind($("loadLastBtn"), loadLast); bind($("selectA"), function () { state.selected = "a"; renderPeople(); }); bind($("selectB"), function () { state.selected = "b"; renderPeople(); });
+    bind($("startBtn"), start); bind($("resumeBtn"), resumeSaved); bind($("nextBtn"), next); bind($("prevBtn"), previous); bind($("pauseBtn"), togglePause); bind($("resetBtn"), reset); bind($("newBtn"), reset); bind($("editCurrentBtn"), function () { openEdit(state.current); }); bind($("saveEditBtn"), saveEdit); bind($("cancelEditBtn"), closeEdit); bind($("xmlBtn"), downloadXml); bind($("jsonBtn"), downloadJson); bind($("pngBtn"), downloadPng); bind($("comparePngBtn"), downloadComparePng); bind($("copyBtn"), copySummary); bind($("loadLastBtn"), loadLast);
     $("routeList").addEventListener("click", handleRouteTap, false); $("routeList").addEventListener("touchend", handleRouteTap, false); $("importFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("resultImportFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("progressFiles").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("progressFilesResults").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("photoA").addEventListener("change", function (e) { readPhoto("a", e.target.files[0]); }, false); $("photoB").addEventListener("change", function (e) { readPhoto("b", e.target.files[0]); }, false); $("nameA").addEventListener("input", renderRoute, false); $("nameB").addEventListener("input", renderRoute, false);
     var adjusters = document.querySelectorAll("[data-adjust]"); var i; for (i = 0; i < adjusters.length; i += 1) bind(adjusters[i], function (event) { var target = event.target || event.srcElement; adjust(Number(target.getAttribute("data-adjust")) || 0); });
     window.addEventListener("pagehide", saveActiveSession, false);
