@@ -81,6 +81,18 @@
   function setStatus(text, cls) { $("status").className = "status" + (cls ? " " + cls : ""); $("status").textContent = text; }
   function toast(text) { var el = $("toast"); el.textContent = text; el.className = "toast show"; clearTimeout(toast.t); toast.t = setTimeout(function () { el.className = "toast"; }, 2100); }
 
+  function applyTheme(theme) {
+    document.body.className = theme === "light" ? "theme-light" : "";
+    $("themeToggle").textContent = theme === "light" ? "Modo negro" : "Modo claro";
+    try { localStorage.setItem("deka-fit-theme", theme); } catch (e) {}
+  }
+
+  function loadTheme() {
+    var theme = "";
+    try { theme = localStorage.getItem("deka-fit-theme") || ""; } catch (e) {}
+    applyTheme(theme === "light" ? "light" : "dark");
+  }
+
   function showScreen(id) {
     var screens = document.querySelectorAll(".screen");
     var i;
@@ -189,12 +201,13 @@
   function handleRouteTap(event) { var node = event.target || event.srcElement; while (node && node !== document && !node.getAttribute("data-assign")) node = node.parentNode; if (!node || node === document) return; var index = Number(node.getAttribute("data-assign")); var value = node.getAttribute("data-value") || ""; if (stations[index].locked) return; state.assignments[index] = value; renderRoute(); if (state.active) renderStation(); }
 
   function setupEvents() {
+    bind($("themeToggle"), function () { applyTheme(document.body.className === "theme-light" ? "dark" : "light"); });
     bind($("startBtn"), start); bind($("nextBtn"), next); bind($("prevBtn"), previous); bind($("pauseBtn"), togglePause); bind($("resetBtn"), reset); bind($("newBtn"), reset); bind($("editCurrentBtn"), function () { openEdit(state.current); }); bind($("saveEditBtn"), saveEdit); bind($("cancelEditBtn"), closeEdit); bind($("xmlBtn"), downloadXml); bind($("jsonBtn"), downloadJson); bind($("pngBtn"), downloadPng); bind($("copyBtn"), copySummary); bind($("loadLastBtn"), loadLast); bind($("selectA"), function () { state.selected = "a"; renderPeople(); }); bind($("selectB"), function () { state.selected = "b"; renderPeople(); });
     $("routeList").addEventListener("click", handleRouteTap, false); $("routeList").addEventListener("touchend", handleRouteTap, false); $("importFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("photoA").addEventListener("change", function (e) { readPhoto("a", e.target.files[0]); }, false); $("photoB").addEventListener("change", function (e) { readPhoto("b", e.target.files[0]); }, false); $("nameA").addEventListener("input", renderRoute, false); $("nameB").addEventListener("input", renderRoute, false);
     var adjusters = document.querySelectorAll("[data-adjust]"); var i; for (i = 0; i < adjusters.length; i += 1) bind(adjusters[i], function (event) { var target = event.target || event.srcElement; adjust(Number(target.getAttribute("data-adjust")) || 0); });
   }
 
   window.onerror = function (msg, url, line) { $("jsProbe").textContent = "JS error linea " + line; $("jsProbe").style.color = "#ffb6ba"; return false; };
-  function boot() { $("jsProbe").textContent = "JS activo"; initAssignments(); renderPeople(); renderRoute(); setupEvents(); }
+  function boot() { $("jsProbe").textContent = "JS activo"; loadTheme(); initAssignments(); renderPeople(); renderRoute(); setupEvents(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, false); else boot();
 })();

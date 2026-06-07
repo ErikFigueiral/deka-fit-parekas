@@ -60,6 +60,8 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   background: linear-gradient(180deg, rgba(6, 16, 9, .97), rgba(6, 16, 9, .86));
   backdrop-filter: blur(10px);
 }
+.top-actions { display: flex; align-items: center; gap: 8px; }
+.theme-toggle { min-height: 38px; padding: 8px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-3); color: var(--text); font-weight: 900; font-size: .82rem; }
 .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .brand-logo { width: 56px; height: 56px; border-radius: 50%; box-shadow: 0 0 26px rgba(0, 230, 118, .25); }
 h1, h2, h3, p { margin: 0; }
@@ -79,6 +81,7 @@ h1 { font-size: 1.1rem; line-height: 1.05; }
 .panel { padding: 16px; }
 
 .intro-panel { align-self: start; }
+.hero-image { height: 210px; border-radius: 9px; margin-bottom: 16px; background: url("../img/hero-stations.svg") center/cover no-repeat; border: 1px solid var(--line); box-shadow: inset 0 0 0 1px rgba(255,255,255,.04); }
 .intro-panel h2 { font-size: clamp(2.4rem, 4.6vw, 4rem); line-height: .95; margin: 4px 0 10px; letter-spacing: 0; }
 .intro-panel p { line-height: 1.48; margin-bottom: 16px; color: var(--soft); }
 .athletes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
@@ -158,6 +161,36 @@ h1 { font-size: 1.1rem; line-height: 1.05; }
 .toast.show { transform: translate(-50%,0); }
 canvas { display: none; }
 
+body.theme-light {
+  --bg: #f4f7f1;
+  --surface: #ffffff;
+  --surface-2: #f3f6f0;
+  --surface-3: #e8efe7;
+  --line: #d2ddcf;
+  --line-strong: #afc0ac;
+  --text: #101914;
+  --muted: #5d6a60;
+  --soft: #25352b;
+  --shadow: 0 18px 42px rgba(18, 37, 25, .12);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(0, 230, 118, .16), transparent 25rem),
+    radial-gradient(circle at 95% 10%, rgba(185, 255, 50, .18), transparent 22rem),
+    linear-gradient(145deg, #f7faf5 0%, #edf4ea 54%, #f9fbf7 100%);
+}
+body.theme-light .topbar { background: linear-gradient(180deg, rgba(247,250,245,.97), rgba(247,250,245,.84)); }
+body.theme-light .panel, body.theme-light .stage { background: rgba(255,255,255,.93); }
+body.theme-light .intro-panel p { color: #25352b; }
+body.theme-light .station-card { background: linear-gradient(145deg, #f7fff8, #edf5ec 75%); border-color: #cde0cf; }
+body.theme-light .station-icon { background: #f8fff8; color: #0d7a3a; }
+body.theme-light .badge { color: #0d3b22; background: rgba(0,230,118,.13); }
+body.theme-light .assignee { background: rgba(10,30,18,.08); }
+body.theme-light .stage-art { background: radial-gradient(circle at 30% 20%, rgba(185,255,50,.24), transparent 13rem), linear-gradient(145deg,#e8fff0,#f7fff8); }
+body.theme-light .timers div, body.theme-light .metrics div { background: rgba(10,30,18,.04); }
+body.theme-light .workout-actions { background: linear-gradient(180deg, transparent, rgba(255,255,255,.96) 35%); }
+body.theme-light .athlete-body input, body.theme-light .edit-grid input { background: #fbfff9; color: var(--text); }
+body.theme-light .modal { background: #fff; }
+body.theme-light .js-probe { background: rgba(255,255,255,.86); color: #0d7a3a; }
+
 @media (min-width: 1180px) {
   .app { padding-left: 0; padding-right: 0; }
   .route-list { grid-template-columns: repeat(2, minmax(280px, 1fr)); }
@@ -176,6 +209,7 @@ canvas { display: none; }
   h1 { font-size: 1rem; }
   .status { display: none; }
   .panel { padding: 14px; }
+  .hero-image { height: 150px; margin-bottom: 14px; }
   .intro-panel h2 { font-size: 2.45rem; }
   .athletes { grid-template-columns: 1fr; }
   .metrics { grid-template-columns: 1fr 1fr; }
