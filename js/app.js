@@ -5,6 +5,7 @@
   var storage = window.DekaStorage;
   var exporter = window.DekaExport;
   var key = "deka-fit-parejas-v1";
+  var activeKey = "deka-fit-parejas-active-v1";
 
   var state = {
     active: false,
@@ -27,6 +28,7 @@
   var defaultPhotos = { a: "img/person-a.jpg", b: "img/person-b.jpg" };
 
   var $ = function (id) { return document.getElementById(id); };
+  function isWorkoutPage() { return document.body.getAttribute("data-page") === "workout"; }
 
   function bind(el, fn) {
     if (!el) return;
@@ -89,6 +91,41 @@
 
   function setStatus(text, cls) { $("status").className = "status" + (cls ? " " + cls : ""); $("status").textContent = text; }
   function toast(text) { var el = $("toast"); el.textContent = text; el.className = "toast show"; clearTimeout(toast.t); toast.t = setTimeout(function () { el.className = "toast"; }, 2100); }
+
+  function saveActiveSession() {
+    if (!state.active) return;
+    try {
+      localStorage.setItem(activeKey, JSON.stringify({
+        savedAt: Date.now(),
+        current: state.current,
+        paused: state.paused,
+        stationStartAt: state.stationStartAt,
+        stationOffset: stationElapsed(),
+        elapsedBefore: state.elapsedBefore,
+        splits: state.splits,
+        assignments: state.assignments,
+        names: { a: $("nameA").value || "", b: $("nameB").value || "" },
+        photos: state.photos
+      }));
+    } catch (e) {}
+  }
+
+  function clearActiveSession() {
+    try { localStorage.removeItem(activeKey); } catch (e) {}
+    if ($("resumeBtn")) $("resumeBtn").hidden = true;
+  }
+
+  function getActiveSession() {
+    try {
+      var raw = localStorage.getItem(activeKey);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
+  function showResumeIfNeeded() {
+    var saved = getActiveSession();
+    if ($("resumeBtn")) $("resumeBtn").hidden = !(saved && saved.assignments && saved.assignments.length);
+  }
 
   function applyTheme(theme) {
     document.body.className = theme === "light" ? "theme-light" : "";
@@ -176,23 +213,24 @@
     $("splitList").innerHTML = html;
   }
 
-  function start() { state.active = true; state.paused = false; state.current = 0; state.splits = []; state.elapsedBefore = 0; state.stationOffset = 0; state.startAt = Date.now(); state.stationStartAt = Date.now(); showScreen("workoutScreen"); setStatus("En marcha", "running"); renderStation(); clearTimeout(state.tickId); tick(); }
-  function next() { if (!state.active) return; var ms = stationElapsed(); state.splits[state.current] = ms; state.elapsedBefore += ms; if (state.current >= stations.length - 1) { finish(); return; } state.current += 1; state.stationOffset = 0; state.stationStartAt = Date.now(); state.paused = false; $("alarm").className = "alarm"; $("pauseBtn").className = "btn"; $("pauseBtn").textContent = "Pausar"; renderStation(); tick(); }
-  function previous() { if (!state.active || state.current === 0) return; state.current -= 1; state.elapsedBefore -= state.splits[state.current] || 0; if (state.elapsedBefore < 0) state.elapsedBefore = 0; state.stationOffset = state.splits[state.current] || 0; state.splits.length = state.current; state.paused = true; clearTimeout(state.tickId); $("alarm").className = "alarm paused"; $("pauseBtn").className = "btn paused-btn"; $("pauseBtn").textContent = "Reanudar"; renderStation(); setStatus("Pausado", "paused"); }
-  function togglePause() { if (!state.active) return; if (state.paused) { state.paused = false; state.stationStartAt = Date.now(); $("alarm").className = "alarm"; $("pauseBtn").className = "btn"; $("pauseBtn").textContent = "Pausar"; setStatus("En marcha", "running"); tick(); } else { state.stationOffset = stationElapsed(); state.paused = true; clearTimeout(state.tickId); $("alarm").className = "alarm paused"; $("pauseBtn").className = "btn paused-btn"; $("pauseBtn").textContent = "Reanudar"; setStatus("Pausado", "paused"); } }
-  function reset() { state.active = false; state.paused = false; clearTimeout(state.tickId); setStatus("", ""); showScreen("setupScreen"); }
+  function start() { clearActiveSession(); state.active = true; state.paused = false; state.current = 0; state.splits = []; state.elapsedBefore = 0; state.stationOffset = 0; state.startAt = Date.now(); state.stationStartAt = Date.now(); setStatus("En marcha", "running"); renderStation(); clearTimeout(state.tickId); saveActiveSession(); if (!isWorkoutPage()) { window.location.href = "workout.html"; return; } showScreen("workoutScreen"); tick(); }
+  function resumeSaved() { var saved = getActiveSession(); if (!saved) return; state.active = true; state.paused = !!saved.paused; state.current = Number(saved.current) || 0; state.splits = saved.splits || []; state.assignments = saved.assignments || state.assignments; state.photos = saved.photos || state.photos; state.elapsedBefore = Number(saved.elapsedBefore) || 0; state.stationOffset = Number(saved.stationOffset) || 0; state.stationStartAt = state.paused ? Date.now() : Date.now() - state.stationOffset; if (saved.names) { $("nameA").value = saved.names.a || ""; $("nameB").value = saved.names.b || ""; } renderPeople(); renderRoute(); showScreen("workoutScreen"); $("alarm").className = state.paused ? "alarm paused" : "alarm"; $("pauseBtn").className = state.paused ? "btn paused-btn" : "btn"; $("pauseBtn").textContent = state.paused ? "Reanudar" : "Pausar"; setStatus(state.paused ? "Pausado" : "En marcha", state.paused ? "paused" : "running"); renderStation(); clearTimeout(state.tickId); if (!state.paused) tick(); }
+  function next() { if (!state.active) return; var ms = stationElapsed(); state.splits[state.current] = ms; state.elapsedBefore += ms; if (state.current >= stations.length - 1) { finish(); return; } state.current += 1; state.stationOffset = 0; state.stationStartAt = Date.now(); state.paused = false; $("alarm").className = "alarm"; $("pauseBtn").className = "btn"; $("pauseBtn").textContent = "Pausar"; renderStation(); saveActiveSession(); tick(); }
+  function previous() { if (!state.active || state.current === 0) return; state.current -= 1; state.elapsedBefore -= state.splits[state.current] || 0; if (state.elapsedBefore < 0) state.elapsedBefore = 0; state.stationOffset = state.splits[state.current] || 0; state.splits.length = state.current; state.paused = true; clearTimeout(state.tickId); $("alarm").className = "alarm paused"; $("pauseBtn").className = "btn paused-btn"; $("pauseBtn").textContent = "Reanudar"; renderStation(); setStatus("Pausado", "paused"); saveActiveSession(); }
+  function togglePause() { if (!state.active) return; if (state.paused) { state.paused = false; state.stationStartAt = Date.now(); $("alarm").className = "alarm"; $("pauseBtn").className = "btn"; $("pauseBtn").textContent = "Pausar"; setStatus("En marcha", "running"); saveActiveSession(); tick(); } else { state.stationOffset = stationElapsed(); state.paused = true; clearTimeout(state.tickId); $("alarm").className = "alarm paused"; $("pauseBtn").className = "btn paused-btn"; $("pauseBtn").textContent = "Reanudar"; setStatus("Pausado", "paused"); saveActiveSession(); } }
+  function reset() { state.active = false; state.paused = false; clearTimeout(state.tickId); clearActiveSession(); setStatus("", ""); if (isWorkoutPage()) { window.location.href = "index.html"; return; } showScreen("setupScreen"); }
 
   function recalcElapsed() { var total = 0, i; for (i = 0; i < state.current; i += 1) total += state.splits[i] || 0; state.elapsedBefore = total; }
   function openEdit(index) { var ms = index === state.current && state.active && !state.splits[index] ? stationElapsed() : state.splits[index]; if (ms === undefined || ms === null) ms = 0; state.editIndex = index; $("editTitle").textContent = "Editar: " + stations[index].title; $("editMin").value = Math.floor(ms / 60000); $("editSec").value = Math.floor((ms % 60000) / 1000); $("editDec").value = Math.floor((ms % 1000) / 100); $("editModal").className = "modal-back active"; }
   function closeEdit() { $("editModal").className = "modal-back"; state.editIndex = -1; }
-  function saveEdit() { var ms = (Number($("editMin").value) || 0) * 60000 + (Number($("editSec").value) || 0) * 1000 + (Number($("editDec").value) || 0) * 100; var index = state.editIndex; if (index < 0) return; if (index === state.current && state.active && !state.splits[index]) { state.stationOffset = ms; state.stationStartAt = Date.now(); } else { state.splits[index] = ms; recalcElapsed(); } closeEdit(); if (state.active) renderStation(); else renderResults(); toast("Tiempo corregido"); }
+  function saveEdit() { var ms = (Number($("editMin").value) || 0) * 60000 + (Number($("editSec").value) || 0) * 1000 + (Number($("editDec").value) || 0) * 100; var index = state.editIndex; if (index < 0) return; if (index === state.current && state.active && !state.splits[index]) { state.stationOffset = ms; state.stationStartAt = Date.now(); } else { state.splits[index] = ms; recalcElapsed(); } closeEdit(); if (state.active) { renderStation(); saveActiveSession(); } else renderResults(); toast("Tiempo corregido"); }
   function adjust(seconds) { if (!state.active) return; state.stationOffset = Math.max(0, stationElapsed() + seconds * 1000); state.stationStartAt = Date.now(); tick(); }
 
   function buildSession() { var splits = [], i; for (i = 0; i < stations.length; i += 1) splits.push({ title: stations[i].title, detail: stations[i].detail, standard: stations[i].standard, ms: Math.round((state.splits[i] || 0) / 100) * 100 }); return { app: "deka-fit-parejas", version: 3, createdAt: new Date().toISOString(), names: { a: personName("a"), b: personName("b") }, photos: { a: state.photos.a || "", b: state.photos.b || "" }, assignments: state.assignments.slice(0), splits: splits }; }
   function totalOf(session) { var total = 0, i; for (i = 0; i < session.splits.length; i += 1) total += Number(session.splits[i].ms) || 0; return total; }
-  function finish() { state.active = false; clearTimeout(state.tickId); setStatus("Completado", ""); storage.saveLast(buildSession()); renderResults(); showScreen("resultsScreen"); toast("Sesion completada"); }
+  function finish() { state.active = false; clearTimeout(state.tickId); clearActiveSession(); setStatus("Completado", ""); storage.saveLast(buildSession()); renderResults(); showScreen("resultsScreen"); toast("Sesion completada"); }
 
-  function renderResults() { var session = buildSession(); var total = totalOf(session); var previousTotal = state.previous ? totalOf(state.previous) : null; $("resultNames").textContent = session.names.a + " + " + session.names.b; $("resultTotal").textContent = formatTime(total); $("resultDelta").textContent = previousTotal === null ? "Carga un XML anterior para comparar." : (total < previousTotal ? "Mejora total: " + formatTime(previousTotal - total) : "Diferencia: +" + formatTime(total - previousTotal)); renderResultSplits(session); renderRhythm(session); renderEffort(session); renderChart(session); }
+  function renderResults() { var session = buildSession(); var total = totalOf(session); var previousTotal = state.previous ? totalOf(state.previous) : null; $("resultNames").textContent = session.names.a + " + " + session.names.b; $("resultTotal").textContent = formatTime(total); $("resultDelta").className = "muted"; $("resultDelta").textContent = previousTotal === null ? "Carga un XML anterior para comparar." : (total < previousTotal ? "Mejora total: " + formatTime(previousTotal - total) : "Empeora total: +" + formatTime(total - previousTotal)); if (previousTotal !== null) $("resultDelta").className = total <= previousTotal ? "delta-good" : "delta-bad"; renderResultSplits(session); renderRhythm(session); renderComparison(session); renderEffort(session); renderChart(session); }
   function renderResultSplits(session) { var html = "", i, split, prev, cls; for (i = 0; i < session.splits.length; i += 1) { split = session.splits[i]; prev = state.previous && state.previous.splits && state.previous.splits[i] ? Number(state.previous.splits[i].ms) || 0 : null; cls = prev === null ? "" : (split.ms < prev ? " delta-good" : split.ms > prev ? " delta-bad" : ""); html += '<div class="result-row' + cls + '"><span class="idx">' + pad2(i + 1) + '</span><span class="split-name">' + escapeHtml(split.title) + '<small>' + escapeHtml(assignmentLabel(session.assignments[i])) + '</small></span><span class="result-time">' + formatTime(split.ms) + '</span></div>'; } $("resultSplits").innerHTML = html; }
   function renderEffort(session) { var a = 0, b = 0, i, ms, p; for (i = 0; i < session.splits.length; i += 1) { ms = Number(session.splits[i].ms) || 0; p = assignmentPeople(session.assignments[i]); if (p.length === 2) { a += ms / 2; b += ms / 2; } else if (p[0] === "a") a += ms; else if (p[0] === "b") b += ms; } var total = Math.max(a + b, 1); $("effortBox").innerHTML = chartRow("P1", personName("a"), a, a / total * 100) + chartRow("P2", personName("b"), b, b / total * 100); }
   function chartRow(idx, name, ms, width) { return '<div class="chart-row"><span class="idx">' + idx + '</span><span class="chart-name">' + escapeHtml(name) + '</span><span class="chart-time">' + formatTime(ms) + '</span><span class="bar"><span class="fill" style="--w:' + width + '%"></span></span></div>'; }
@@ -221,6 +259,27 @@
     $("rhythmBox").innerHTML = '<svg viewBox="0 0 320 150" role="img" aria-label="Grafica de ritmo por prueba"><line class="grid-line" x1="24" y1="24" x2="302" y2="24"></line><line class="grid-line" x1="24" y1="75" x2="302" y2="75"></line><line class="grid-line" x1="24" y1="126" x2="302" y2="126"></line>' + scale + '<polygon class="area" points="24,126 ' + points + ' 302,126"></polygon><polyline class="line" points="' + points + '"></polyline>' + area + labels + '</svg><div class="rhythm-legend">' + legend + '</div>';
   }
   function renderChart(session) { var total = Math.max(totalOf(session), 1), html = "", i, ms, percent, width; for (i = 0; i < session.splits.length; i += 1) { ms = Number(session.splits[i].ms) || 0; percent = Math.round(ms / total * 100); width = ms ? Math.max(1, ms / total * 100) : 0; html += '<div class="chart-row"><span class="idx">' + pad2(i + 1) + '</span><span class="chart-name">' + escapeHtml(session.splits[i].title) + '<small>' + escapeHtml(assignmentLabel(session.assignments[i])) + '</small></span><span class="chart-time">' + formatTime(ms) + ' ' + percent + '%</span><span class="bar"><span class="fill" style="--w:' + width + '%"></span></span></div>'; } $("chartBox").innerHTML = html; }
+
+  function renderComparison(session) {
+    var box = $("compareBox"), html = "", i, now, prev, diff, cls, label, max;
+    if (!box) return;
+    if (!state.previous || !state.previous.splits) { box.innerHTML = '<p class="muted compare-empty">Carga un XML anterior para ver mejora/empeora por prueba.</p>'; return; }
+    max = Math.max(totalOf(session), totalOf(state.previous), 1);
+    html += compareRow("TOT", "Total", totalOf(session), totalOf(state.previous), max);
+    for (i = 0; i < session.splits.length; i += 1) {
+      now = Number(session.splits[i].ms) || 0;
+      prev = state.previous.splits[i] ? Number(state.previous.splits[i].ms) || 0 : 0;
+      html += compareRow(pad2(i + 1), session.splits[i].title, now, prev, Math.max(now, prev, 1));
+    }
+    box.innerHTML = html;
+  }
+
+  function compareRow(idx, title, now, prev, max) {
+    var diff = now - prev;
+    var cls = diff <= 0 ? "delta-good" : "delta-bad";
+    var label = diff <= 0 ? "-" + formatTime(Math.abs(diff)) : "+" + formatTime(diff);
+    return '<div class="compare-row ' + cls + '"><span class="idx">' + idx + '</span><span class="compare-name">' + escapeHtml(title) + '<small>Anterior ' + formatTime(prev) + ' · Actual ' + formatTime(now) + '</small></span><strong>' + label + '</strong><span class="compare-bars"><i class="prev" style="--w:' + (prev / max * 100) + '%"></i><i class="now" style="--w:' + (now / max * 100) + '%"></i></span></div>';
+  }
 
   function renderProgress() {
     var boxes = document.querySelectorAll(".progress-panel");
@@ -258,9 +317,10 @@
   function downloadJson() { exporter.download("deka-fit-" + new Date().toISOString().slice(0, 10) + ".json", "application/json", JSON.stringify(buildSession(), null, 2)); }
   function copySummary() { var session = buildSession(); var text = "Deka Fit Parejas - " + session.names.a + " + " + session.names.b + "\nTotal: " + formatTime(totalOf(session)) + "\n\n"; var i; for (i = 0; i < session.splits.length; i += 1) text += (i + 1) + ". " + session.splits[i].title + ": " + formatTime(session.splits[i].ms) + " - " + assignmentLabel(session.assignments[i]) + "\n"; exporter.copyText(text, function () { toast("Resumen copiado"); }); }
   function downloadPng() { var session = buildSession(); exporter.png(session, totalOf(session), formatTime, assignmentLabel); }
+  function downloadComparePng() { var session = buildSession(); if (!state.previous) { toast("Carga un XML anterior"); return; } exporter.pngCompare(session, state.previous, totalOf, formatTime); }
   function loadLast() { var last = storage.loadLast(); if (!last) { toast("No hay sesion guardada"); return; } state.previous = last; toast("Ultima sesion cargada para comparar"); }
 
-  function importPrevious(file) { if (!file) return; var reader = new FileReader(); reader.onload = function () { try { var text = String(reader.result || ""); state.previous = text.replace(/^\s+/, "").charAt(0) === "<" ? exporter.fromXml(text, stations) : JSON.parse(text); if (state.previous.names) { if (!$("nameA").value) $("nameA").value = state.previous.names.a || ""; if (!$("nameB").value) $("nameB").value = state.previous.names.b || ""; } toast("Anterior cargada"); renderRoute(); } catch (e) { toast("No pude leer ese archivo"); } }; reader.readAsText(file); }
+  function importPrevious(file) { if (!file) return; var reader = new FileReader(); reader.onload = function () { try { var text = String(reader.result || ""); state.previous = text.replace(/^\s+/, "").charAt(0) === "<" ? exporter.fromXml(text, stations) : JSON.parse(text); if (state.previous.names) { if (!$("nameA").value) $("nameA").value = state.previous.names.a || ""; if (!$("nameB").value) $("nameB").value = state.previous.names.b || ""; } toast("Anterior cargada"); renderRoute(); if (getComputedStyle($("resultsScreen")).display !== "none") renderResults(); } catch (e) { toast("No pude leer ese archivo"); } }; reader.readAsText(file); }
   function importProgress(files) {
     var list = [], left, i;
     if (!files || !files.length) return;
@@ -292,12 +352,29 @@
 
   function setupEvents() {
     bind($("themeToggle"), function () { applyTheme(document.body.className === "theme-light" ? "dark" : "light"); });
-    bind($("startBtn"), start); bind($("nextBtn"), next); bind($("prevBtn"), previous); bind($("pauseBtn"), togglePause); bind($("resetBtn"), reset); bind($("newBtn"), reset); bind($("editCurrentBtn"), function () { openEdit(state.current); }); bind($("saveEditBtn"), saveEdit); bind($("cancelEditBtn"), closeEdit); bind($("xmlBtn"), downloadXml); bind($("jsonBtn"), downloadJson); bind($("pngBtn"), downloadPng); bind($("copyBtn"), copySummary); bind($("loadLastBtn"), loadLast); bind($("selectA"), function () { state.selected = "a"; renderPeople(); }); bind($("selectB"), function () { state.selected = "b"; renderPeople(); });
-    $("routeList").addEventListener("click", handleRouteTap, false); $("routeList").addEventListener("touchend", handleRouteTap, false); $("importFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("progressFiles").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("progressFilesResults").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("photoA").addEventListener("change", function (e) { readPhoto("a", e.target.files[0]); }, false); $("photoB").addEventListener("change", function (e) { readPhoto("b", e.target.files[0]); }, false); $("nameA").addEventListener("input", renderRoute, false); $("nameB").addEventListener("input", renderRoute, false);
+    bind($("startBtn"), start); bind($("resumeBtn"), resumeSaved); bind($("nextBtn"), next); bind($("prevBtn"), previous); bind($("pauseBtn"), togglePause); bind($("resetBtn"), reset); bind($("newBtn"), reset); bind($("editCurrentBtn"), function () { openEdit(state.current); }); bind($("saveEditBtn"), saveEdit); bind($("cancelEditBtn"), closeEdit); bind($("xmlBtn"), downloadXml); bind($("jsonBtn"), downloadJson); bind($("pngBtn"), downloadPng); bind($("comparePngBtn"), downloadComparePng); bind($("copyBtn"), copySummary); bind($("loadLastBtn"), loadLast); bind($("selectA"), function () { state.selected = "a"; renderPeople(); }); bind($("selectB"), function () { state.selected = "b"; renderPeople(); });
+    $("routeList").addEventListener("click", handleRouteTap, false); $("routeList").addEventListener("touchend", handleRouteTap, false); $("importFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("resultImportFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("progressFiles").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("progressFilesResults").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("photoA").addEventListener("change", function (e) { readPhoto("a", e.target.files[0]); }, false); $("photoB").addEventListener("change", function (e) { readPhoto("b", e.target.files[0]); }, false); $("nameA").addEventListener("input", renderRoute, false); $("nameB").addEventListener("input", renderRoute, false);
     var adjusters = document.querySelectorAll("[data-adjust]"); var i; for (i = 0; i < adjusters.length; i += 1) bind(adjusters[i], function (event) { var target = event.target || event.srcElement; adjust(Number(target.getAttribute("data-adjust")) || 0); });
+    window.addEventListener("pagehide", saveActiveSession, false);
+    window.addEventListener("beforeunload", saveActiveSession, false);
+    document.addEventListener("visibilitychange", function () { if (document.hidden) saveActiveSession(); }, false);
   }
 
   window.onerror = function () { return false; };
-  function boot() { loadTheme(); initAssignments(); renderPeople(); renderRoute(); setupEvents(); }
+  function boot() {
+    var saved = getActiveSession();
+    loadTheme();
+    initAssignments();
+    renderPeople();
+    renderRoute();
+    setupEvents();
+    if (isWorkoutPage()) {
+      if (saved) resumeSaved();
+      else window.location.href = "index.html";
+      return;
+    }
+    if (saved) window.location.href = "workout.html";
+    else showResumeIfNeeded();
+  }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, false); else boot();
 })();

@@ -9,12 +9,13 @@ Cronometro web para Deka Fit por parejas, pensado para movil y escritorio, publi
 3. Puedes poner foto, pero no es obligatorio.
 4. Revisa el recorrido. En cada prueba puedes marcar quien la hace: Persona 1, Persona 2, Ambos o nadie.
 5. Pulsa **Empezar**.
-6. Cuando termine cada prueba, pulsa **Pasar prueba**.
-7. Si te equivocas, usa **Volver prueba** o **Editar tiempo**.
-8. Si paras un momento, pulsa **Pausar**. El boton cambia de color para que se vea claro.
-9. Al terminar salen el total, parciales, ritmo y picos, esfuerzo por persona y peso de cada prueba.
-10. Pulsa **Guardar XML** para guardar tus tiempos y usarlos otro dia como comparativa.
-11. Pulsa **Captura PNG** si quieres mandar el resumen bonito por WhatsApp.
+6. La web abre `workout.html`, que es la pantalla limpia de cronometro.
+7. Cuando termine cada prueba, pulsa **Pasar prueba**.
+8. Si te equivocas, usa **Volver prueba** o **Editar tiempo**.
+9. Si paras un momento, pulsa **Pausar**. El boton cambia de color para que se vea claro.
+10. Al terminar salen el total, parciales, ritmo y picos, esfuerzo por persona, peso de cada prueba y comparativa si cargaste XML.
+11. Pulsa **Guardar XML** para guardar tus tiempos y usarlos otro dia como comparativa.
+12. Pulsa **PNG normal** o **PNG comparativo** si quieres mandar el resumen por WhatsApp.
 
 ## Como comparar con una sesion anterior
 
@@ -23,6 +24,8 @@ Cronometro web para Deka Fit por parejas, pensado para movil y escritorio, publi
 3. Pulsa **Cargar anterior**.
 4. Selecciona ese XML.
 5. Al acabar la nueva prueba veras donde mejoras y donde empeoras.
+6. Tambien puedes pulsar **Comparar XML** en el resumen si prefieres cargar el anterior al final.
+7. Las mejoras salen en verde y los empeoramientos en rojo.
 
 ## Como ver progreso con varios XML
 
@@ -36,6 +39,7 @@ Cronometro web para Deka Fit por parejas, pensado para movil y escritorio, publi
 Esta app no tiene backend ni base de datos. Eso es intencionado para que sea facil y privada:
 
 - Los datos se guardan en el movil con `localStorage`.
+- Si el movil se duerme o recargas durante la prueba, `workout.html` recupera la sesion y calcula el tiempo con reloj real.
 - Las sesiones importantes se guardan descargando XML.
 - Las fotos no se suben a ningun servidor.
 - Si cambias de movil, conserva el XML descargado.
@@ -43,11 +47,12 @@ Esta app no tiene backend ni base de datos. Eso es intencionado para que sea fac
 ## Estructura mantenible
 
 ```text
-index.html          estructura de la pagina
+index.html          preparacion, nombres, recorrido y carga de XML
+workout.html        cronometro y resumen
 css/styles.css      todo el diseño responsive
 js/data.js          estaciones y reglas de Deka
 js/storage.js       guardado local
-js/export.js        XML, PNG y texto
+js/export.js        XML, PNG normal, PNG comparativo y texto
 js/app.js           cronometro e interaccion
 img/                logo, avatares e ilustraciones
 ```

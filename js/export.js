@@ -191,6 +191,62 @@
     document.body.removeChild(a);
   }
 
+  function pngCompare(session, previous, totalOf, formatTime) {
+    var canvas = document.getElementById("exportCanvas");
+    var ctx = canvas.getContext("2d");
+    var total = totalOf(session), prevTotal = totalOf(previous);
+    var i, y, now, prev, diff, max, wPrev, wNow;
+    canvas.width = 1080;
+    canvas.height = 1900;
+    ctx.fillStyle = "#061009";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#152119";
+    ctx.fillRect(38, 38, 1004, 1824);
+    ctx.fillStyle = "#f4fff7";
+    ctx.font = "900 50px system-ui, sans-serif";
+    ctx.fillText("Comparativa Deka Fit", 60, 90);
+    ctx.font = "800 30px system-ui, sans-serif";
+    ctx.fillText(session.names.a + " + " + session.names.b, 60, 134);
+    ctx.font = "950 68px system-ui, sans-serif";
+    ctx.fillStyle = total <= prevTotal ? "#00e676" : "#ff5f68";
+    ctx.fillText((total <= prevTotal ? "Mejora " : "Empeora ") + formatTime(Math.abs(total - prevTotal)), 60, 220);
+    ctx.fillStyle = "#aebcaf";
+    ctx.font = "800 24px system-ui, sans-serif";
+    ctx.fillText("Anterior " + formatTime(prevTotal) + "   Actual " + formatTime(total), 60, 262);
+    y = 340;
+    for (i = 0; i < session.splits.length; i += 1) {
+      now = Number(session.splits[i].ms) || 0;
+      prev = previous.splits[i] ? Number(previous.splits[i].ms) || 0 : 0;
+      diff = now - prev;
+      max = Math.max(now, prev, 1);
+      wPrev = prev / max * 710;
+      wNow = now / max * 710;
+      ctx.fillStyle = i % 2 ? "#101914" : "#18231d";
+      ctx.fillRect(50, y - 32, 980, 74);
+      ctx.fillStyle = "#f4fff7";
+      ctx.font = "850 23px system-ui, sans-serif";
+      ctx.fillText((i + 1 < 10 ? "0" : "") + (i + 1) + "  " + session.splits[i].title, 70, y - 8);
+      ctx.textAlign = "right";
+      ctx.fillStyle = diff <= 0 ? "#00e676" : "#ff5f68";
+      ctx.fillText((diff <= 0 ? "-" : "+") + formatTime(Math.abs(diff)), 1010, y - 8);
+      ctx.textAlign = "left";
+      ctx.fillStyle = "rgba(255,255,255,.22)";
+      ctx.fillRect(230, y + 8, wPrev, 8);
+      ctx.fillStyle = diff <= 0 ? "#b9ff32" : "#ff5f68";
+      ctx.fillRect(230, y + 22, wNow, 8);
+      ctx.fillStyle = "#aebcaf";
+      ctx.font = "700 16px system-ui, sans-serif";
+      ctx.fillText("gris anterior · color actual", 70, y + 24);
+      y += 82;
+    }
+    var a = document.createElement("a");
+    a.href = canvas.toDataURL("image/png");
+    a.download = "deka-fit-comparativa-" + new Date().toISOString().slice(0, 10) + ".png";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
   function rhythmLabel(title) {
     title = String(title || "").toLowerCase();
     if (title.indexOf("160 m") >= 0) return "";
@@ -207,5 +263,5 @@
     return "";
   }
 
-  window.DekaExport = { toXml: toXml, fromXml: fromXml, download: download, copyText: copyText, png: png };
+  window.DekaExport = { toXml: toXml, fromXml: fromXml, download: download, copyText: copyText, png: png, pngCompare: pngCompare };
 })();
