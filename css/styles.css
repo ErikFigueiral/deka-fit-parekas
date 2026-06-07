@@ -274,8 +274,8 @@ h1 { font-size: 1.1rem; line-height: 1.05; }
 .modal-back.active { display: grid; }
 .modal { width: min(100%, 420px); border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); padding: 16px; }
 .edit-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 12px 0; }
-.toast { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 70; transform: translate(-50%,120%); transition: transform .25s ease; padding: 10px 12px; border-radius: 999px; background: #f4fff7; color: #061009; font-weight: 950; box-shadow: var(--shadow); max-width: calc(100% - 28px); }
-.toast.show { transform: translate(-50%,0); }
+.toast { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 70; transform: translate(-50%, calc(100% + 42px)); opacity: 0; pointer-events: none; transition: transform .25s ease, opacity .2s ease; padding: 10px 12px; border-radius: 999px; background: #f4fff7; color: #061009; font-weight: 950; box-shadow: var(--shadow); max-width: calc(100% - 28px); }
+.toast.show { transform: translate(-50%,0); opacity: 1; }
 canvas { display: none; }
 
 body.theme-light {
