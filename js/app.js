@@ -229,14 +229,14 @@
   function totalOf(session) { var total = 0, i; for (i = 0; i < session.splits.length; i += 1) total += Number(session.splits[i].ms) || 0; return total; }
   function finish() { state.active = false; clearTimeout(state.tickId); clearActiveSession(); setStatus("Completado", ""); storage.saveLast(buildSession()); renderResults(); showScreen("resultsScreen"); toast("Sesion completada"); }
 
-  function renderResults() { var session = buildSession(); var total = totalOf(session); var previousTotal = state.previous ? totalOf(state.previous) : null; $("resultNames").textContent = session.names.a + " + " + session.names.b; $("resultTotal").textContent = formatTime(total); $("resultDelta").className = "muted"; $("resultDelta").textContent = previousTotal === null ? "Carga un XML anterior para comparar." : (total < previousTotal ? "Mejora total: " + formatTime(previousTotal - total) : "Empeora total: +" + formatTime(total - previousTotal)); if (previousTotal !== null) $("resultDelta").className = total <= previousTotal ? "delta-good" : "delta-bad"; renderResultSplits(session); renderRhythm(session); renderComparison(session); renderEffort(session); renderChart(session); }
+  function renderResults() { var session = buildSession(); var total = totalOf(session); var previousTotal = state.previous ? totalOf(state.previous) : null; $("resultNames").textContent = session.names.a + " + " + session.names.b; $("resultTotal").textContent = formatTime(total); $("resultDelta").className = "muted"; $("resultDelta").textContent = previousTotal === null ? "Carga un intento anterior para comparar." : (total < previousTotal ? "Mejora total: " + formatTime(previousTotal - total) : "Empeora total: +" + formatTime(total - previousTotal)); if (previousTotal !== null) $("resultDelta").className = total <= previousTotal ? "delta-good" : "delta-bad"; renderResultSplits(session); renderRhythm(session); renderComparison(session); renderEffort(session); renderChart(session); }
   function renderResultSplits(session) { var html = "", i, split, prev, cls; for (i = 0; i < session.splits.length; i += 1) { split = session.splits[i]; prev = state.previous && state.previous.splits && state.previous.splits[i] ? Number(state.previous.splits[i].ms) || 0 : null; cls = prev === null ? "" : (split.ms < prev ? " delta-good" : split.ms > prev ? " delta-bad" : ""); html += '<div class="result-row' + cls + '"><span class="idx">' + pad2(i + 1) + '</span><span class="split-name">' + escapeHtml(split.title) + '<small>' + escapeHtml(assignmentLabel(session.assignments[i])) + '</small></span><span class="result-time">' + formatTime(split.ms) + '</span></div>'; } $("resultSplits").innerHTML = html; }
   function renderEffort(session) { var a = 0, b = 0, i, ms, p; for (i = 0; i < session.splits.length; i += 1) { ms = Number(session.splits[i].ms) || 0; p = assignmentPeople(session.assignments[i]); if (p.length === 2) { a += ms / 2; b += ms / 2; } else if (p[0] === "a") a += ms; else if (p[0] === "b") b += ms; } var total = Math.max(a + b, 1); $("effortBox").innerHTML = chartRow("P1", personName("a"), a, a / total * 100) + chartRow("P2", personName("b"), b, b / total * 100); }
   function chartRow(idx, name, ms, width) { return '<div class="chart-row"><span class="idx">' + idx + '</span><span class="chart-name">' + escapeHtml(name) + '</span><span class="chart-time">' + formatTime(ms) + '</span><span class="bar"><span class="fill" style="--w:' + width + '%"></span></span></div>'; }
   function renderRhythm(session) {
     var max = 0, i, ms, points = "", area = "", labels = "", legend = "", scale = "", x, y, w = 320, h = 150, pad = 24, kind, label, tickMs, tickY;
     for (i = 0; i < session.splits.length; i += 1) { ms = Number(session.splits[i].ms) || 0; if (ms > max) max = ms; }
-    if (!max) { $("rhythmBox").innerHTML = '<div class="rhythm-empty">Sin tiempos todavia</div>'; return; }
+    if (!max) { $("rhythmBox").innerHTML = '<div class="rhythm-empty">Los tiempos apareceran al finalizar.</div>'; return; }
     for (i = 0; i < 3; i += 1) {
       tickMs = max * (1 - i / 2);
       tickY = pad + (h - pad * 2) * (i / 2);
@@ -262,7 +262,7 @@
   function renderComparison(session) {
     var box = $("compareBox"), html = "", i, now, prev, diff, cls, label, max;
     if (!box) return;
-    if (!state.previous || !state.previous.splits) { box.innerHTML = '<p class="muted compare-empty">Carga un XML anterior para ver mejora/empeora por prueba.</p>'; return; }
+    if (!state.previous || !state.previous.splits) { box.innerHTML = '<p class="muted compare-empty">Carga un intento anterior para ver en que pruebas mejoraste o empeoraste.</p>'; return; }
     max = Math.max(totalOf(session), totalOf(state.previous), 1);
     html += compareRow("TOT", "Total", totalOf(session), totalOf(state.previous), max);
     for (i = 0; i < session.splits.length; i += 1) {
@@ -316,10 +316,10 @@
   function downloadJson() { exporter.download("deka-fit-" + new Date().toISOString().slice(0, 10) + ".json", "application/json", JSON.stringify(buildSession(), null, 2)); }
   function copySummary() { var session = buildSession(); var text = "Deka Fit Parejas - " + session.names.a + " + " + session.names.b + "\nTotal: " + formatTime(totalOf(session)) + "\n\n"; var i; for (i = 0; i < session.splits.length; i += 1) text += (i + 1) + ". " + session.splits[i].title + ": " + formatTime(session.splits[i].ms) + " - " + assignmentLabel(session.assignments[i]) + "\n"; exporter.copyText(text, function () { toast("Resumen copiado"); }); }
   function downloadPng() { var session = buildSession(); exporter.png(session, totalOf(session), formatTime, assignmentLabel); }
-  function downloadComparePng() { var session = buildSession(); if (!state.previous) { toast("Carga un XML anterior"); return; } exporter.pngCompare(session, state.previous, totalOf, formatTime); }
+  function downloadComparePng() { var session = buildSession(); if (!state.previous) { toast("Carga un intento anterior"); return; } exporter.pngCompare(session, state.previous, totalOf, formatTime); }
   function loadLast() { var last = storage.loadLast(); if (!last) { toast("No hay sesion guardada"); return; } state.previous = last; toast("Ultima sesion cargada para comparar"); }
 
-  function importPrevious(file) { if (!file) return; var reader = new FileReader(); reader.onload = function () { try { var text = String(reader.result || ""); state.previous = text.replace(/^\s+/, "").charAt(0) === "<" ? exporter.fromXml(text, stations) : JSON.parse(text); if (state.previous.names) { if (!$("nameA").value) $("nameA").value = state.previous.names.a || ""; if (!$("nameB").value) $("nameB").value = state.previous.names.b || ""; } toast("Anterior cargada"); renderRoute(); if (getComputedStyle($("resultsScreen")).display !== "none") renderResults(); } catch (e) { toast("No pude leer ese archivo"); } }; reader.readAsText(file); }
+  function importPrevious(file) { if (!file) return; var reader = new FileReader(); reader.onload = function () { try { var text = String(reader.result || ""); state.previous = text.replace(/^\s+/, "").charAt(0) === "<" ? exporter.fromXml(text, stations) : JSON.parse(text); if (state.previous.names) { if (!$("nameA").value) $("nameA").value = state.previous.names.a || ""; if (!$("nameB").value) $("nameB").value = state.previous.names.b || ""; } toast("Intento anterior cargado"); renderRoute(); if (getComputedStyle($("resultsScreen")).display !== "none") renderResults(); } catch (e) { toast("No se pudo leer el archivo"); } }; reader.readAsText(file); }
   function importProgress(files) {
     var list = [], left, i;
     if (!files || !files.length) return;
@@ -335,7 +335,7 @@
           } catch (e) {}
           left -= 1;
           if (left === 0) {
-            if (!list.length) { toast("No pude leer esos XML"); return; }
+            if (!list.length) { toast("No se pudieron leer esos XML"); return; }
             state.progress = list;
             renderProgress();
             toast(list.length + " XML cargados para progreso");

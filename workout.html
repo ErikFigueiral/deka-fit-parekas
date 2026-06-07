@@ -33,7 +33,7 @@
         <section class="panel intro-panel">
           <div class="hero-image" aria-hidden="true"></div>
           <h2>Control de prueba</h2>
-          <p>Prepara la pareja, asigna estaciones con P1/P2/Ambos y carga una sesion anterior si quieres comparar parciales. Todo se puede corregir durante la prueba.</p>
+          <p>Introduce los nombres, revisa el recorrido y empieza el cronometro. Si ya tienes un XML anterior, puedes cargarlo para ver mejoras al terminar.</p>
 
           <div class="athletes">
             <article class="athlete-card" id="cardA">
@@ -68,7 +68,7 @@
 
         <section class="panel route-panel">
           <h2>Recorrido Deka</h2>
-          <p>Vista compacta del circuito. Usa los botones de cada prueba para asignarla sin cambios accidentales.</p>
+          <p>Selecciona quien hace cada estacion. Los tramos de pareja ya quedan marcados como Ambos.</p>
           <div class="metrics">
             <div><strong>20</strong><span>tramos y estaciones</span></div>
             <div><strong>10</strong><span>carreras de enlace</span></div>
@@ -142,7 +142,7 @@
             <button class="btn" id="copyBtn" type="button">Texto</button>
             <button class="btn" id="newBtn" type="button">Empezar</button>
           </div>
-          <p class="save-note">El XML es tu intento guardado: cargalo en otra sesion para comparar tiempos, personas y mejoras.</p>
+          <p class="save-note">Guarda el XML para conservar este intento. Podras cargarlo otro dia y comparar tiempos, personas y mejoras.</p>
           <div id="resultSplits"></div>
         </section>
 
@@ -164,7 +164,7 @@
   <div class="modal-back" id="editModal">
     <div class="modal">
       <h3 id="editTitle">Editar tiempo</h3>
-      <p class="muted">Ajusta minutos, segundos y decimas.</p>
+      <p class="muted">Corrige el tiempo si hubo un error durante la prueba.</p>
       <div class="edit-grid">
         <label>Min<input id="editMin" type="number" inputmode="numeric" min="0" value="0"></label>
         <label>Seg<input id="editSec" type="number" inputmode="numeric" min="0" max="59" value="0"></label>
