@@ -6,6 +6,8 @@
   var exporter = window.DekaExport;
   var key = "deka-fit-parejas-v1";
   var activeKey = "deka-fit-parejas-active-v1";
+  var setupKey = "deka-fit-parejas-setup-v1";
+  var nextLockedUntil = 0;
 
   var state = {
     active: false,
@@ -114,6 +116,30 @@
     if ($("resumeBtn")) $("resumeBtn").hidden = true;
   }
 
+  function saveSetup() {
+    try {
+      localStorage.setItem(setupKey, JSON.stringify({
+        names: { a: $("nameA") ? $("nameA").value || "" : "", b: $("nameB") ? $("nameB").value || "" : "" },
+        photos: state.photos,
+        assignments: state.assignments
+      }));
+    } catch (e) {}
+  }
+
+  function loadSetup() {
+    try {
+      var raw = localStorage.getItem(setupKey);
+      var saved = raw ? JSON.parse(raw) : null;
+      if (!saved) return;
+      if (saved.names) {
+        if ($("nameA")) $("nameA").value = saved.names.a || "";
+        if ($("nameB")) $("nameB").value = saved.names.b || "";
+      }
+      if (saved.photos) state.photos = saved.photos;
+      if (saved.assignments && saved.assignments.length === stations.length) state.assignments = saved.assignments;
+    } catch (e) {}
+  }
+
   function getActiveSession() {
     try {
       var raw = localStorage.getItem(activeKey);
@@ -150,6 +176,13 @@
     var i;
     state.assignments = [];
     for (i = 0; i < stations.length; i += 1) state.assignments[i] = stations[i].locked ? "both" : "";
+  }
+
+  function enforceLockedAssignments() {
+    var i;
+    for (i = 0; i < stations.length; i += 1) {
+      if (stations[i].locked) state.assignments[i] = "both";
+    }
   }
 
   function renderPeople() {
@@ -228,12 +261,44 @@
     $("splitList").innerHTML = html;
   }
 
-  function start() { clearActiveSession(); state.active = true; state.paused = false; state.current = 0; state.splits = []; state.elapsedBefore = 0; state.stationOffset = 0; state.startAt = Date.now(); state.stationStartAt = Date.now(); setStatus("En marcha", "running"); renderStation(); clearTimeout(state.tickId); saveActiveSession(); if (!isWorkoutPage()) { window.location.href = "workout.html"; return; } showScreen("workoutScreen"); tick(); }
-  function resumeSaved() { var saved = getActiveSession(); if (!saved) return; state.active = true; state.paused = !!saved.paused; state.current = Number(saved.current) || 0; state.splits = saved.splits || []; state.assignments = saved.assignments || state.assignments; state.photos = saved.photos || state.photos; state.elapsedBefore = Number(saved.elapsedBefore) || 0; state.stationOffset = Number(saved.stationOffset) || 0; state.stationStartAt = state.paused ? Date.now() : Date.now() - state.stationOffset; if (saved.names) { $("nameA").value = saved.names.a || ""; $("nameB").value = saved.names.b || ""; } renderPeople(); renderRoute(); showScreen("workoutScreen"); $("alarm").className = state.paused ? "alarm paused" : "alarm"; $("pauseBtn").className = state.paused ? "btn paused-btn" : "btn"; $("pauseBtn").textContent = state.paused ? "Reanudar" : "Pausar"; setStatus(state.paused ? "Pausado" : "En marcha", state.paused ? "paused" : "running"); renderStation(); clearTimeout(state.tickId); if (!state.paused) tick(); }
-  function next() { if (!state.active) return; var ms = stationElapsed(); state.splits[state.current] = ms; state.elapsedBefore += ms; if (state.current >= stations.length - 1) { finish(); return; } state.current += 1; state.stationOffset = 0; state.stationStartAt = Date.now(); state.paused = false; $("alarm").className = "alarm"; $("pauseBtn").className = "btn"; $("pauseBtn").textContent = "Pausar"; renderStation(); saveActiveSession(); tick(); }
+  function start() { enforceLockedAssignments(); saveSetup(); clearActiveSession(); state.active = true; state.paused = false; state.current = 0; state.splits = []; state.elapsedBefore = 0; state.stationOffset = 0; state.startAt = Date.now(); state.stationStartAt = Date.now(); nextLockedUntil = 0; setStatus("En marcha", "running"); renderStation(); clearTimeout(state.tickId); saveActiveSession(); if (!isWorkoutPage()) { window.location.href = "workout.html"; return; } showScreen("workoutScreen"); tick(); }
+  function resumeSaved() { var saved = getActiveSession(); if (!saved) return; state.active = true; state.paused = !!saved.paused; state.current = Number(saved.current) || 0; state.splits = saved.splits || []; state.assignments = saved.assignments || state.assignments; enforceLockedAssignments(); state.photos = saved.photos || state.photos; state.elapsedBefore = Number(saved.elapsedBefore) || 0; state.stationOffset = Number(saved.stationOffset) || 0; state.stationStartAt = state.paused ? Date.now() : Date.now() - state.stationOffset; if (saved.names) { $("nameA").value = saved.names.a || ""; $("nameB").value = saved.names.b || ""; } renderPeople(); renderRoute(); showScreen("workoutScreen"); $("alarm").className = state.paused ? "alarm paused" : "alarm"; $("pauseBtn").className = state.paused ? "btn paused-btn" : "btn"; $("pauseBtn").textContent = state.paused ? "Reanudar" : "Pausar"; setStatus(state.paused ? "Pausado" : "En marcha", state.paused ? "paused" : "running"); renderStation(); clearTimeout(state.tickId); if (!state.paused) tick(); }
+  function next() {
+    if (!state.active) return;
+    if (Date.now() < nextLockedUntil) return;
+    nextLockedUntil = Date.now() + 850;
+    if ($("nextBtn")) {
+      $("nextBtn").disabled = true;
+      setTimeout(function () { if ($("nextBtn") && state.active) $("nextBtn").disabled = false; }, 850);
+    }
+    var ms = stationElapsed();
+    state.splits[state.current] = ms;
+    state.elapsedBefore += ms;
+    if (state.current >= stations.length - 1) { finish(); return; }
+    state.current += 1;
+    state.stationOffset = 0;
+    state.stationStartAt = Date.now();
+    state.paused = false;
+    $("alarm").className = "alarm";
+    $("pauseBtn").className = "btn";
+    $("pauseBtn").textContent = "Pausar";
+    renderStation();
+    saveActiveSession();
+    tick();
+  }
   function previous() { if (!state.active || state.current === 0) return; state.current -= 1; state.elapsedBefore -= state.splits[state.current] || 0; if (state.elapsedBefore < 0) state.elapsedBefore = 0; state.stationOffset = state.splits[state.current] || 0; state.splits.length = state.current; state.paused = true; clearTimeout(state.tickId); $("alarm").className = "alarm paused"; $("pauseBtn").className = "btn paused-btn"; $("pauseBtn").textContent = "Reanudar"; renderStation(); setStatus("Pausado", "paused"); saveActiveSession(); }
   function togglePause() { if (!state.active) return; if (state.paused) { state.paused = false; state.stationStartAt = Date.now(); $("alarm").className = "alarm"; $("pauseBtn").className = "btn"; $("pauseBtn").textContent = "Pausar"; setStatus("En marcha", "running"); saveActiveSession(); tick(); } else { state.stationOffset = stationElapsed(); state.paused = true; clearTimeout(state.tickId); $("alarm").className = "alarm paused"; $("pauseBtn").className = "btn paused-btn"; $("pauseBtn").textContent = "Reanudar"; setStatus("Pausado", "paused"); saveActiveSession(); } }
-  function reset() { state.active = false; state.paused = false; clearTimeout(state.tickId); clearActiveSession(); setStatus("", ""); if (isWorkoutPage()) { window.location.href = "index.html"; return; } showScreen("setupScreen"); }
+  function reset() {
+    if (state.active && !window.confirm("¿Reiniciar la prueba? Se conservarán nombres, fotos y asignaciones.")) return;
+    saveSetup();
+    state.active = false;
+    state.paused = false;
+    clearTimeout(state.tickId);
+    clearActiveSession();
+    setStatus("", "");
+    if (isWorkoutPage()) { window.location.href = "index.html"; return; }
+    showScreen("setupScreen");
+  }
 
   function recalcElapsed() { var total = 0, i; for (i = 0; i < state.current; i += 1) total += state.splits[i] || 0; state.elapsedBefore = total; }
   function openEdit(index) { var ms = index === state.current && state.active && !state.splits[index] ? stationElapsed() : state.splits[index]; if (ms === undefined || ms === null) ms = 0; state.editIndex = index; $("editTitle").textContent = "Editar: " + stations[index].title; $("editMin").value = Math.floor(ms / 60000); $("editSec").value = Math.floor((ms % 60000) / 1000); $("editDec").value = Math.floor((ms % 1000) / 100); $("editModal").className = "modal-back active"; }
@@ -243,7 +308,7 @@
 
   function buildSession() { var splits = [], i; for (i = 0; i < stations.length; i += 1) splits.push({ title: stations[i].title, detail: stations[i].detail, standard: stations[i].standard, ms: Math.round((state.splits[i] || 0) / 100) * 100 }); return { app: "deka-fit-parejas", version: 3, createdAt: new Date().toISOString(), names: { a: personName("a"), b: personName("b") }, photos: { a: state.photos.a || "", b: state.photos.b || "" }, assignments: state.assignments.slice(0), splits: splits }; }
   function totalOf(session) { var total = 0, i; for (i = 0; i < session.splits.length; i += 1) total += Number(session.splits[i].ms) || 0; return total; }
-  function finish() { state.active = false; clearTimeout(state.tickId); clearActiveSession(); setStatus("Completado", ""); storage.saveLast(buildSession()); renderResults(); showScreen("resultsScreen"); toast("Sesion completada"); }
+  function finish() { state.active = false; clearTimeout(state.tickId); clearActiveSession(); saveSetup(); setStatus("Completado", ""); storage.saveLast(buildSession()); renderResults(); showScreen("resultsScreen"); toast("Sesion completada"); }
 
   function renderResults() { var session = buildSession(); var total = totalOf(session); var previousTotal = state.previous ? totalOf(state.previous) : null; $("resultNames").textContent = session.names.a + " + " + session.names.b; $("resultTotal").textContent = formatTime(total); $("resultDelta").className = "muted"; $("resultDelta").textContent = previousTotal === null ? "Carga un intento anterior para comparar." : (total < previousTotal ? "Mejora total: " + formatTime(previousTotal - total) : "Empeora total: +" + formatTime(total - previousTotal)); if (previousTotal !== null) $("resultDelta").className = total <= previousTotal ? "delta-good" : "delta-bad"; renderResultSplits(session); renderRhythm(session); renderComparison(session); renderEffort(session); renderChart(session); }
   function renderResultSplits(session) { var html = "", i, split, prev, cls; for (i = 0; i < session.splits.length; i += 1) { split = session.splits[i]; prev = state.previous && state.previous.splits && state.previous.splits[i] ? Number(state.previous.splits[i].ms) || 0 : null; cls = prev === null ? "" : (split.ms < prev ? " delta-good" : split.ms > prev ? " delta-bad" : ""); html += '<div class="result-row' + cls + '"><span class="idx">' + pad2(i + 1) + '</span><span class="split-name">' + escapeHtml(split.title) + '<small>' + escapeHtml(assignmentLabel(session.assignments[i])) + '</small></span><span class="result-time">' + formatTime(split.ms) + '</span></div>'; } $("resultSplits").innerHTML = html; }
@@ -397,9 +462,9 @@
       })(files[i]);
     }
   }
-  function readPhoto(id, file) { if (!file) return; var reader = new FileReader(); reader.onload = function () { state.photos[id] = String(reader.result || ""); renderPeople(); renderRoute(); }; reader.readAsDataURL(file); }
+  function readPhoto(id, file) { if (!file) return; var reader = new FileReader(); reader.onload = function () { state.photos[id] = String(reader.result || ""); renderPeople(); renderRoute(); saveSetup(); }; reader.readAsDataURL(file); }
 
-  function handleRouteTap(event) { var node = event.target || event.srcElement; while (node && node !== document && !node.getAttribute("data-assign")) node = node.parentNode; if (!node || node === document) return; var index = Number(node.getAttribute("data-assign")); var value = node.getAttribute("data-value") || ""; if (stations[index].locked) return; state.assignments[index] = value; renderRoute(); if (state.active) { renderStation(); saveActiveSession(); } }
+  function handleRouteTap(event) { var node = event.target || event.srcElement; while (node && node !== document && !node.getAttribute("data-assign")) node = node.parentNode; if (!node || node === document) return; var index = Number(node.getAttribute("data-assign")); var value = node.getAttribute("data-value") || ""; if (stations[index].locked) return; state.assignments[index] = value; renderRoute(); saveSetup(); if (state.active) { renderStation(); saveActiveSession(); } }
 
   function handleCurrentAssignTap(event) {
     var node = event.target || event.srcElement;
@@ -409,6 +474,7 @@
     state.assignments[state.current] = node.getAttribute("data-current-assign") || "";
     renderRoute();
     renderStation();
+    saveSetup();
     saveActiveSession();
     toast("Persona actualizada");
   }
@@ -416,7 +482,7 @@
   function setupEvents() {
     bind($("themeToggle"), function () { applyTheme(document.body.className === "theme-light" ? "dark" : "light"); });
     bind($("startBtn"), start); bind($("resumeBtn"), resumeSaved); bind($("nextBtn"), next); bind($("prevBtn"), previous); bind($("pauseBtn"), togglePause); bind($("resetBtn"), reset); bind($("newBtn"), reset); bind($("editCurrentBtn"), function () { openEdit(state.current); }); bind($("saveEditBtn"), saveEdit); bind($("cancelEditBtn"), closeEdit); bind($("xmlBtn"), downloadXml); bind($("jsonBtn"), downloadJson); bind($("pngBtn"), downloadPng); bind($("comparePngBtn"), downloadComparePng); bind($("copyBtn"), copySummary); bind($("loadLastBtn"), loadLast);
-    $("routeList").addEventListener("click", handleRouteTap, false); $("routeList").addEventListener("touchend", handleRouteTap, false); $("currentAssignControls").addEventListener("click", handleCurrentAssignTap, false); $("currentAssignControls").addEventListener("touchend", handleCurrentAssignTap, false); $("importFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("resultImportFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("progressFiles").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("progressFilesResults").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("photoA").addEventListener("change", function (e) { readPhoto("a", e.target.files[0]); }, false); $("photoB").addEventListener("change", function (e) { readPhoto("b", e.target.files[0]); }, false); $("nameA").addEventListener("input", renderRoute, false); $("nameB").addEventListener("input", renderRoute, false);
+    $("routeList").addEventListener("click", handleRouteTap, false); $("routeList").addEventListener("touchend", handleRouteTap, false); $("currentAssignControls").addEventListener("click", handleCurrentAssignTap, false); $("currentAssignControls").addEventListener("touchend", handleCurrentAssignTap, false); $("importFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("resultImportFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("progressFiles").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("progressFilesResults").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("photoA").addEventListener("change", function (e) { readPhoto("a", e.target.files[0]); }, false); $("photoB").addEventListener("change", function (e) { readPhoto("b", e.target.files[0]); }, false); $("nameA").addEventListener("input", function () { renderRoute(); saveSetup(); if (state.active) saveActiveSession(); }, false); $("nameB").addEventListener("input", function () { renderRoute(); saveSetup(); if (state.active) saveActiveSession(); }, false);
     var adjusters = document.querySelectorAll("[data-adjust]"); var i; for (i = 0; i < adjusters.length; i += 1) bind(adjusters[i], function (event) { var target = event.target || event.srcElement; adjust(Number(target.getAttribute("data-adjust")) || 0); });
     window.addEventListener("pagehide", saveActiveSession, false);
     window.addEventListener("beforeunload", saveActiveSession, false);
@@ -428,6 +494,8 @@
     var saved = getActiveSession();
     loadTheme();
     initAssignments();
+    loadSetup();
+    enforceLockedAssignments();
     renderPeople();
     renderRoute();
     setupEvents();

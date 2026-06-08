@@ -85,11 +85,11 @@
     var ctx = canvas.getContext("2d");
     var i, y, ms, width, max, points, x, py, graphX, graphY, graphW, graphH, label;
     canvas.width = 1080;
-    canvas.height = 2100;
+    canvas.height = 2200;
     ctx.fillStyle = "#061009";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#152119";
-    ctx.fillRect(38, 38, 1004, 2024);
+    ctx.fillRect(38, 38, 1004, 2124);
     ctx.fillStyle = "#f4fff7";
     ctx.font = "900 50px system-ui, sans-serif";
     ctx.fillText("Deka Fit Parejas", 60, 90);
@@ -169,19 +169,23 @@
     y = 690;
     for (i = 0; i < session.splits.length; i += 1) {
       ms = Number(session.splits[i].ms) || 0;
-      width = total ? Math.max(2, ms / total * 760) : 0;
+      width = total ? Math.max(2, ms / total * 620) : 0;
       ctx.fillStyle = i % 2 ? "#101914" : "#18231d";
-      ctx.fillRect(50, y - 28, 980, 52);
+      ctx.fillRect(50, y - 30, 980, 60);
       ctx.fillStyle = "#f4fff7";
-      ctx.fillText((i + 1 < 10 ? "0" : "") + (i + 1) + "  " + session.splits[i].title, 70, y);
+      ctx.fillText((i + 1 < 10 ? "0" : "") + (i + 1) + "  " + session.splits[i].title, 70, y - 7);
       ctx.textAlign = "right";
-      ctx.fillText(formatTime(ms), 1010, y);
+      ctx.fillText(formatTime(ms), 1010, y - 7);
       ctx.textAlign = "left";
+      ctx.fillStyle = "#aebcaf";
+      ctx.font = "750 18px system-ui, sans-serif";
+      ctx.fillText("Hecha por: " + assignmentLabel(session.assignments[i]), 70, y + 18);
+      ctx.font = "800 24px system-ui, sans-serif";
       ctx.fillStyle = "#26382c";
-      ctx.fillRect(190, y + 10, 760, 10);
+      ctx.fillRect(330, y + 12, 620, 10);
       ctx.fillStyle = "#b9ff32";
-      ctx.fillRect(190, y + 10, width, 10);
-      y += 66;
+      ctx.fillRect(330, y + 12, width, 10);
+      y += 72;
     }
     var a = document.createElement("a");
     a.href = canvas.toDataURL("image/png");
