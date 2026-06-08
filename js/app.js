@@ -8,6 +8,9 @@
   var activeKey = "deka-fit-parejas-active-v1";
   var setupKey = "deka-fit-parejas-setup-v1";
   var actionLockedUntil = 0;
+  var wakeLock = null;
+  var wakeWanted = false;
+  var competitionMode = false;
 
   var state = {
     active: false,
@@ -141,6 +144,7 @@
         elapsedBefore: state.elapsedBefore,
         splits: state.splits,
         assignments: state.assignments,
+        previous: state.previous,
         names: { a: $("nameA").value || "", b: $("nameB").value || "" },
         photos: state.photos
       }));
@@ -189,7 +193,7 @@
   }
 
   function applyTheme(theme) {
-    document.body.className = theme === "light" ? "theme-light" : "";
+    document.body.classList.toggle("theme-light", theme === "light");
     $("themeToggle").textContent = theme === "light" ? "Oscuro" : "Claro";
     try { localStorage.setItem("deka-fit-theme", theme); } catch (e) {}
   }
@@ -298,7 +302,7 @@
   }
 
   function start() { enforceLockedAssignments(); saveSetup(); clearActiveSession(); state.active = true; state.paused = false; state.current = 0; state.splits = []; state.elapsedBefore = 0; state.stationOffset = 0; state.startAt = Date.now(); state.stationStartAt = Date.now(); actionLockedUntil = 0; setStatus("En marcha", "running"); renderStation(); clearTimeout(state.tickId); saveActiveSession(); if (!isWorkoutPage()) { window.location.href = "workout.html"; return; } showScreen("workoutScreen"); tick(); }
-  function resumeSaved() { var saved = getActiveSession(); if (!saved) return; state.active = true; state.paused = !!saved.paused; state.current = Number(saved.current) || 0; state.splits = saved.splits || []; state.assignments = saved.assignments || state.assignments; enforceLockedAssignments(); state.photos = saved.photos || state.photos; state.elapsedBefore = Number(saved.elapsedBefore) || 0; state.stationOffset = Number(saved.stationOffset) || 0; state.stationStartAt = state.paused ? Date.now() : Date.now() - state.stationOffset; if (saved.names) { $("nameA").value = saved.names.a || ""; $("nameB").value = saved.names.b || ""; } renderPeople(); renderRoute(); showScreen("workoutScreen"); $("alarm").className = state.paused ? "alarm paused" : "alarm"; $("pauseBtn").className = state.paused ? "btn paused-btn" : "btn"; $("pauseBtn").textContent = state.paused ? "Reanudar" : "Pausar"; setStatus(state.paused ? "Pausado" : "En marcha", state.paused ? "paused" : "running"); renderStation(); clearTimeout(state.tickId); if (!state.paused) tick(); }
+  function resumeSaved() { var saved = getActiveSession(); if (!saved) return; state.active = true; state.paused = !!saved.paused; state.current = Number(saved.current) || 0; state.splits = saved.splits || []; state.assignments = saved.assignments || state.assignments; enforceLockedAssignments(); state.previous = saved.previous || state.previous; state.photos = saved.photos || state.photos; state.elapsedBefore = Number(saved.elapsedBefore) || 0; state.stationOffset = Number(saved.stationOffset) || 0; state.stationStartAt = state.paused ? Date.now() : Date.now() - state.stationOffset; if (saved.names) { $("nameA").value = saved.names.a || ""; $("nameB").value = saved.names.b || ""; } renderPeople(); renderRoute(); renderComparisonStatus(); showScreen("workoutScreen"); $("alarm").className = state.paused ? "alarm paused" : "alarm"; $("pauseBtn").className = state.paused ? "btn paused-btn" : "btn"; $("pauseBtn").textContent = state.paused ? "Reanudar" : "Pausar"; setStatus(state.paused ? "Pausado" : "En marcha", state.paused ? "paused" : "running"); renderStation(); clearTimeout(state.tickId); if (!state.paused) tick(); }
   function next() {
     if (!state.active) return;
     if (!takeWorkoutActionLock(850)) return;
@@ -463,14 +467,33 @@
     for (b = 0; b < boxes.length; b += 1) boxes[b].innerHTML = html;
   }
 
+  function renderComparisonStatus() {
+    var boxes = [ $("comparisonStatus"), $("resultComparisonStatus") ];
+    var session = state.previous;
+    var i, box, total, html;
+    for (i = 0; i < boxes.length; i += 1) {
+      box = boxes[i];
+      if (!box) continue;
+      if (!session) {
+        box.hidden = true;
+        box.innerHTML = "";
+        continue;
+      }
+      total = totalOf(session);
+      html = '<div><strong>Marca anterior cargada</strong><p>' + escapeHtml(formatDate(session.createdAt)) + ' · ' + escapeHtml(session.names.a || "Persona 1") + ' + ' + escapeHtml(session.names.b || "Persona 2") + '</p></div><div class="compare-status-total">' + formatTime(total) + '</div><button class="small-btn" type="button" data-clear-comparison="1">Quitar</button>';
+      box.innerHTML = html;
+      box.hidden = false;
+    }
+  }
+
   function downloadXml() { exporter.download("deka-fit-" + new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19) + ".xml", "application/xml", exporter.toXml(buildSession())); }
   function downloadJson() { exporter.download("deka-fit-" + new Date().toISOString().slice(0, 10) + ".json", "application/json", JSON.stringify(buildSession(), null, 2)); }
   function copySummary() { var session = buildSession(); var text = "Deka Fit Parejas - " + session.names.a + " + " + session.names.b + "\nTotal: " + formatTime(totalOf(session)) + "\n\n"; var i; for (i = 0; i < session.splits.length; i += 1) text += (i + 1) + ". " + session.splits[i].title + ": " + formatTime(session.splits[i].ms) + " - " + assignmentLabel(session.assignments[i]) + "\n"; exporter.copyText(text, function () { toast("Resumen copiado"); }); }
   function downloadPng() { var session = buildSession(); exporter.png(session, totalOf(session), formatTime, assignmentLabel); }
   function downloadComparePng() { var session = buildSession(); if (!state.previous) { toast("Carga un intento anterior"); return; } exporter.pngCompare(session, state.previous, totalOf, formatTime); }
-  function loadLast() { var last = storage.loadLast(); if (!last) { toast("No hay sesion guardada"); return; } state.previous = last; toast("Ultima sesion cargada para comparar"); }
+  function loadLast() { var last = storage.loadLast(); if (!last) { toast("No hay sesion guardada"); return; } state.previous = last; renderComparisonStatus(); if (state.active) saveActiveSession(); toast("Marca anterior lista para comparar"); }
 
-  function importPrevious(file) { if (!file) return; var reader = new FileReader(); reader.onload = function () { try { var text = String(reader.result || ""); state.previous = text.replace(/^\s+/, "").charAt(0) === "<" ? exporter.fromXml(text, stations) : JSON.parse(text); if (state.previous.names) { if (!$("nameA").value) $("nameA").value = state.previous.names.a || ""; if (!$("nameB").value) $("nameB").value = state.previous.names.b || ""; } toast("Intento anterior cargado"); renderRoute(); if (getComputedStyle($("resultsScreen")).display !== "none") renderResults(); } catch (e) { toast("No se pudo leer el archivo"); } }; reader.readAsText(file); }
+  function importPrevious(file) { if (!file) return; var reader = new FileReader(); reader.onload = function () { try { var text = String(reader.result || ""); state.previous = text.replace(/^\s+/, "").charAt(0) === "<" ? exporter.fromXml(text, stations) : JSON.parse(text); if (state.previous.names) { if (!$("nameA").value) $("nameA").value = state.previous.names.a || ""; if (!$("nameB").value) $("nameB").value = state.previous.names.b || ""; } toast("Marca anterior cargada"); renderComparisonStatus(); renderRoute(); if (state.active) saveActiveSession(); if (getComputedStyle($("resultsScreen")).display !== "none") renderResults(); } catch (e) { toast("No se pudo leer el archivo"); } }; reader.readAsText(file); }
   function importProgress(files) {
     var list = [], left, i;
     if (!files || !files.length) return;
@@ -515,14 +538,89 @@
     toast("Persona actualizada");
   }
 
+  function clearComparison() {
+    state.previous = null;
+    renderComparisonStatus();
+    if (state.active) saveActiveSession();
+    if ($("compareBox")) renderComparison(buildSession());
+    toast("Comparativa quitada");
+  }
+
+  function toggleCompetitionMode() {
+    competitionMode = !competitionMode;
+    document.body.classList.toggle("competition-mode", competitionMode);
+    if ($("competitionBtn")) $("competitionBtn").textContent = competitionMode ? "Vista completa" : "Modo competición";
+    toast(competitionMode ? "Modo competicion activo" : "Vista completa");
+  }
+
+  function updateWakeButton() {
+    if (!$("wakeBtn")) return;
+    $("wakeBtn").className = wakeWanted ? "btn primary" : "btn";
+    $("wakeBtn").textContent = wakeWanted ? "Pantalla fija" : "Pantalla activa";
+  }
+
+  function requestWakeLock() {
+    if (!("wakeLock" in navigator) || !navigator.wakeLock.request) {
+      wakeWanted = false;
+      updateWakeButton();
+      toast("Este movil no permite fijar pantalla desde la web");
+      return;
+    }
+    navigator.wakeLock.request("screen").then(function (lock) {
+      wakeLock = lock;
+      wakeWanted = true;
+      updateWakeButton();
+      toast("Pantalla activa");
+      wakeLock.addEventListener("release", function () {
+        wakeLock = null;
+        if (!document.hidden && wakeWanted) updateWakeButton();
+      });
+    }, function () {
+      wakeWanted = false;
+      updateWakeButton();
+      toast("No se pudo activar la pantalla fija");
+    });
+  }
+
+  function toggleWakeLock() {
+    if (wakeLock) {
+      wakeWanted = false;
+      wakeLock.release();
+      wakeLock = null;
+      updateWakeButton();
+      toast("Pantalla normal");
+      return;
+    }
+    wakeWanted = true;
+    updateWakeButton();
+    requestWakeLock();
+  }
+
+  function initShareQr() {
+    var box = $("shareCard");
+    var img = $("shareQr");
+    var url = window.location.href.replace(/index\.html(?:#.*)?$/, "");
+    if (!box || !img || !/^https?:/.test(url)) return;
+    img.src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=" + encodeURIComponent(url);
+    box.hidden = false;
+  }
+
+  function handleDocumentTap(event) {
+    var node = event.target || event.srcElement;
+    while (node && node !== document && !node.getAttribute("data-clear-comparison")) node = node.parentNode;
+    if (!node || node === document) return;
+    clearComparison();
+  }
+
   function setupEvents() {
-    bind($("themeToggle"), function () { applyTheme(document.body.className === "theme-light" ? "dark" : "light"); });
-    bind($("startBtn"), start); bind($("resumeBtn"), resumeSaved); bind($("nextBtn"), next); bind($("prevBtn"), previous); bind($("pauseBtn"), togglePause); bind($("resetBtn"), reset); bind($("newBtn"), reset); bind($("editCurrentBtn"), function () { openEdit(state.current); }); bind($("saveEditBtn"), saveEdit); bind($("cancelEditBtn"), closeEdit); bind($("xmlBtn"), downloadXml); bind($("jsonBtn"), downloadJson); bind($("pngBtn"), downloadPng); bind($("comparePngBtn"), downloadComparePng); bind($("copyBtn"), copySummary); bind($("loadLastBtn"), loadLast);
+    bind($("themeToggle"), function () { applyTheme(document.body.classList.contains("theme-light") ? "dark" : "light"); });
+    bind($("startBtn"), start); bind($("resumeBtn"), resumeSaved); bind($("nextBtn"), next); bind($("prevBtn"), previous); bind($("pauseBtn"), togglePause); bind($("resetBtn"), reset); bind($("newBtn"), reset); bind($("editCurrentBtn"), function () { openEdit(state.current); }); bind($("wakeBtn"), toggleWakeLock); bind($("competitionBtn"), toggleCompetitionMode); bind($("saveEditBtn"), saveEdit); bind($("cancelEditBtn"), closeEdit); bind($("xmlBtn"), downloadXml); bind($("jsonBtn"), downloadJson); bind($("pngBtn"), downloadPng); bind($("comparePngBtn"), downloadComparePng); bind($("copyBtn"), copySummary); bind($("loadLastBtn"), loadLast);
     $("routeList").addEventListener("click", handleRouteTap, false); $("routeList").addEventListener("touchend", handleRouteTap, false); $("currentAssignControls").addEventListener("click", handleCurrentAssignTap, false); $("currentAssignControls").addEventListener("touchend", handleCurrentAssignTap, false); $("importFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("resultImportFile").addEventListener("change", function (e) { importPrevious(e.target.files[0]); }, false); $("progressFiles").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("progressFilesResults").addEventListener("change", function (e) { importProgress(e.target.files); }, false); $("photoA").addEventListener("change", function (e) { readPhoto("a", e.target.files[0]); }, false); $("photoB").addEventListener("change", function (e) { readPhoto("b", e.target.files[0]); }, false); $("nameA").addEventListener("input", function () { renderRoute(); saveSetup(); if (state.active) saveActiveSession(); }, false); $("nameB").addEventListener("input", function () { renderRoute(); saveSetup(); if (state.active) saveActiveSession(); }, false);
     var adjusters = document.querySelectorAll("[data-adjust]"); var i; for (i = 0; i < adjusters.length; i += 1) bind(adjusters[i], function (event) { var target = event.target || event.srcElement; adjust(Number(target.getAttribute("data-adjust")) || 0); });
     window.addEventListener("pagehide", saveActiveSession, false);
     window.addEventListener("beforeunload", saveActiveSession, false);
-    document.addEventListener("visibilitychange", function () { if (document.hidden) saveActiveSession(); }, false);
+    document.addEventListener("click", handleDocumentTap, false);
+    document.addEventListener("visibilitychange", function () { if (document.hidden) saveActiveSession(); else if (wakeWanted && !wakeLock) requestWakeLock(); }, false);
   }
 
   window.onerror = function () { return false; };
@@ -534,6 +632,9 @@
     enforceLockedAssignments();
     renderPeople();
     renderRoute();
+    renderComparisonStatus();
+    initShareQr();
+    updateWakeButton();
     setupEvents();
     if (isWorkoutPage()) {
       if (saved) resumeSaved();

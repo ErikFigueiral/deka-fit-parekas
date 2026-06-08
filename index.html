@@ -60,9 +60,17 @@
           <div class="actions">
             <button class="btn primary" id="startBtn" type="button">Empezar</button>
             <button class="btn" id="resumeBtn" type="button" hidden>Reanudar prueba</button>
-            <label class="btn file-btn">Cargar intento<input id="importFile" type="file" accept=".xml,.json,application/xml,text/xml,application/json"></label>
+            <label class="btn file-btn">Cargar marca anterior<input id="importFile" type="file" accept=".xml,.json,application/xml,text/xml,application/json"></label>
             <label class="btn file-btn">Ver progreso<input id="progressFiles" type="file" multiple accept=".xml,application/xml,text/xml"></label>
             <button class="btn" id="loadLastBtn" type="button">Ultima guardada</button>
+          </div>
+          <div class="compare-status-card" id="comparisonStatus" hidden></div>
+          <div class="share-card" id="shareCard" hidden>
+            <div>
+              <strong>Compartir app</strong>
+              <p>Escanea este QR para abrir el cronometro en otro movil.</p>
+            </div>
+            <img id="shareQr" alt="QR para abrir Deka Fit Parejas">
           </div>
         </section>
 
@@ -138,11 +146,12 @@
             <button class="btn primary" id="pngBtn" type="button">PNG normal</button>
             <button class="btn primary" id="comparePngBtn" type="button">PNG comparativo</button>
             <button class="btn primary" id="xmlBtn" type="button">Guardar intento</button>
-            <label class="btn file-btn">Comparar anterior<input id="resultImportFile" type="file" accept=".xml,.json,application/xml,text/xml,application/json"></label>
+            <label class="btn file-btn">Cargar marca anterior<input id="resultImportFile" type="file" accept=".xml,.json,application/xml,text/xml,application/json"></label>
             <label class="btn file-btn">Ver progreso<input id="progressFilesResults" type="file" multiple accept=".xml,application/xml,text/xml"></label>
             <button class="btn" id="copyBtn" type="button">Texto</button>
             <button class="btn" id="newBtn" type="button">Empezar</button>
           </div>
+          <div class="compare-status-card" id="resultComparisonStatus" hidden></div>
           <p class="save-note">Guarda este intento para conservar tus tiempos. Podras cargarlo otro dia y comparar marcas, personas y mejoras.</p>
           <div id="resultSplits"></div>
         </section>
