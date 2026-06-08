@@ -7,7 +7,7 @@
   var key = "deka-fit-parejas-v1";
   var activeKey = "deka-fit-parejas-active-v1";
   var setupKey = "deka-fit-parejas-setup-v1";
-  var nextLockedUntil = 0;
+  var actionLockedUntil = 0;
 
   var state = {
     active: false,
@@ -92,6 +92,42 @@
 
   function setStatus(text, cls) { $("status").className = "status" + (cls ? " " + cls : ""); $("status").textContent = text; }
   function toast(text) { var el = $("toast"); el.textContent = text; el.className = "toast show"; clearTimeout(toast.t); toast.t = setTimeout(function () { el.className = "toast"; }, 2100); }
+
+  function isWorkoutActionLocked() {
+    return Date.now() < actionLockedUntil;
+  }
+
+  function syncWorkoutControlsLock() {
+    var buttons = document.querySelectorAll("#workoutScreen .workout-actions button, #workoutScreen .adjust-actions button, #currentAssignControls button");
+    var i, btn;
+    if (!isWorkoutActionLocked()) return;
+    for (i = 0; i < buttons.length; i += 1) {
+      btn = buttons[i];
+      if (btn.disabled) continue;
+      btn.disabled = true;
+      btn.setAttribute("data-touch-lock", "1");
+    }
+  }
+
+  function lockWorkoutControls(ms) {
+    actionLockedUntil = Date.now() + ms;
+    syncWorkoutControlsLock();
+    setTimeout(function () {
+      var locked = document.querySelectorAll('[data-touch-lock="1"]');
+      var j;
+      if (Date.now() < actionLockedUntil) return;
+      for (j = 0; j < locked.length; j += 1) {
+        locked[j].disabled = false;
+        locked[j].removeAttribute("data-touch-lock");
+      }
+    }, ms);
+  }
+
+  function takeWorkoutActionLock(ms) {
+    if (isWorkoutActionLocked()) return false;
+    lockWorkoutControls(ms || 700);
+    return true;
+  }
 
   function saveActiveSession() {
     if (!state.active) return;
@@ -261,16 +297,11 @@
     $("splitList").innerHTML = html;
   }
 
-  function start() { enforceLockedAssignments(); saveSetup(); clearActiveSession(); state.active = true; state.paused = false; state.current = 0; state.splits = []; state.elapsedBefore = 0; state.stationOffset = 0; state.startAt = Date.now(); state.stationStartAt = Date.now(); nextLockedUntil = 0; setStatus("En marcha", "running"); renderStation(); clearTimeout(state.tickId); saveActiveSession(); if (!isWorkoutPage()) { window.location.href = "workout.html"; return; } showScreen("workoutScreen"); tick(); }
+  function start() { enforceLockedAssignments(); saveSetup(); clearActiveSession(); state.active = true; state.paused = false; state.current = 0; state.splits = []; state.elapsedBefore = 0; state.stationOffset = 0; state.startAt = Date.now(); state.stationStartAt = Date.now(); actionLockedUntil = 0; setStatus("En marcha", "running"); renderStation(); clearTimeout(state.tickId); saveActiveSession(); if (!isWorkoutPage()) { window.location.href = "workout.html"; return; } showScreen("workoutScreen"); tick(); }
   function resumeSaved() { var saved = getActiveSession(); if (!saved) return; state.active = true; state.paused = !!saved.paused; state.current = Number(saved.current) || 0; state.splits = saved.splits || []; state.assignments = saved.assignments || state.assignments; enforceLockedAssignments(); state.photos = saved.photos || state.photos; state.elapsedBefore = Number(saved.elapsedBefore) || 0; state.stationOffset = Number(saved.stationOffset) || 0; state.stationStartAt = state.paused ? Date.now() : Date.now() - state.stationOffset; if (saved.names) { $("nameA").value = saved.names.a || ""; $("nameB").value = saved.names.b || ""; } renderPeople(); renderRoute(); showScreen("workoutScreen"); $("alarm").className = state.paused ? "alarm paused" : "alarm"; $("pauseBtn").className = state.paused ? "btn paused-btn" : "btn"; $("pauseBtn").textContent = state.paused ? "Reanudar" : "Pausar"; setStatus(state.paused ? "Pausado" : "En marcha", state.paused ? "paused" : "running"); renderStation(); clearTimeout(state.tickId); if (!state.paused) tick(); }
   function next() {
     if (!state.active) return;
-    if (Date.now() < nextLockedUntil) return;
-    nextLockedUntil = Date.now() + 850;
-    if ($("nextBtn")) {
-      $("nextBtn").disabled = true;
-      setTimeout(function () { if ($("nextBtn") && state.active) $("nextBtn").disabled = false; }, 850);
-    }
+    if (!takeWorkoutActionLock(850)) return;
     var ms = stationElapsed();
     state.splits[state.current] = ms;
     state.elapsedBefore += ms;
@@ -283,12 +314,15 @@
     $("pauseBtn").className = "btn";
     $("pauseBtn").textContent = "Pausar";
     renderStation();
+    syncWorkoutControlsLock();
     saveActiveSession();
     tick();
   }
-  function previous() { if (!state.active || state.current === 0) return; state.current -= 1; state.elapsedBefore -= state.splits[state.current] || 0; if (state.elapsedBefore < 0) state.elapsedBefore = 0; state.stationOffset = state.splits[state.current] || 0; state.splits.length = state.current; state.paused = true; clearTimeout(state.tickId); $("alarm").className = "alarm paused"; $("pauseBtn").className = "btn paused-btn"; $("pauseBtn").textContent = "Reanudar"; renderStation(); setStatus("Pausado", "paused"); saveActiveSession(); }
-  function togglePause() { if (!state.active) return; if (state.paused) { state.paused = false; state.stationStartAt = Date.now(); $("alarm").className = "alarm"; $("pauseBtn").className = "btn"; $("pauseBtn").textContent = "Pausar"; setStatus("En marcha", "running"); saveActiveSession(); tick(); } else { state.stationOffset = stationElapsed(); state.paused = true; clearTimeout(state.tickId); $("alarm").className = "alarm paused"; $("pauseBtn").className = "btn paused-btn"; $("pauseBtn").textContent = "Reanudar"; setStatus("Pausado", "paused"); saveActiveSession(); } }
+  function previous() { if (!state.active || state.current === 0) return; if (!takeWorkoutActionLock(700)) return; state.current -= 1; state.elapsedBefore -= state.splits[state.current] || 0; if (state.elapsedBefore < 0) state.elapsedBefore = 0; state.stationOffset = state.splits[state.current] || 0; state.splits.length = state.current; state.paused = true; clearTimeout(state.tickId); $("alarm").className = "alarm paused"; $("pauseBtn").className = "btn paused-btn"; $("pauseBtn").textContent = "Reanudar"; renderStation(); syncWorkoutControlsLock(); setStatus("Pausado", "paused"); saveActiveSession(); }
+  function togglePause() { if (!state.active) return; if (!takeWorkoutActionLock(650)) return; if (state.paused) { state.paused = false; state.stationStartAt = Date.now(); $("alarm").className = "alarm"; $("pauseBtn").className = "btn"; $("pauseBtn").textContent = "Pausar"; setStatus("En marcha", "running"); saveActiveSession(); tick(); } else { state.stationOffset = stationElapsed(); state.paused = true; clearTimeout(state.tickId); $("alarm").className = "alarm paused"; $("pauseBtn").className = "btn paused-btn"; $("pauseBtn").textContent = "Reanudar"; setStatus("Pausado", "paused"); saveActiveSession(); } }
   function reset() {
+    if (isWorkoutPage() && isWorkoutActionLocked()) return;
+    if (isWorkoutPage()) lockWorkoutControls(700);
     if (state.active && !window.confirm("¿Reiniciar la prueba? Se conservarán nombres, fotos y asignaciones.")) return;
     saveSetup();
     state.active = false;
@@ -301,10 +335,10 @@
   }
 
   function recalcElapsed() { var total = 0, i; for (i = 0; i < state.current; i += 1) total += state.splits[i] || 0; state.elapsedBefore = total; }
-  function openEdit(index) { var ms = index === state.current && state.active && !state.splits[index] ? stationElapsed() : state.splits[index]; if (ms === undefined || ms === null) ms = 0; state.editIndex = index; $("editTitle").textContent = "Editar: " + stations[index].title; $("editMin").value = Math.floor(ms / 60000); $("editSec").value = Math.floor((ms % 60000) / 1000); $("editDec").value = Math.floor((ms % 1000) / 100); $("editModal").className = "modal-back active"; }
+  function openEdit(index) { if (isWorkoutPage() && !takeWorkoutActionLock(650)) return; var ms = index === state.current && state.active && !state.splits[index] ? stationElapsed() : state.splits[index]; if (ms === undefined || ms === null) ms = 0; state.editIndex = index; $("editTitle").textContent = "Editar: " + stations[index].title; $("editMin").value = Math.floor(ms / 60000); $("editSec").value = Math.floor((ms % 60000) / 1000); $("editDec").value = Math.floor((ms % 1000) / 100); $("editModal").className = "modal-back active"; }
   function closeEdit() { $("editModal").className = "modal-back"; state.editIndex = -1; }
   function saveEdit() { var ms = (Number($("editMin").value) || 0) * 60000 + (Number($("editSec").value) || 0) * 1000 + (Number($("editDec").value) || 0) * 100; var index = state.editIndex; if (index < 0) return; if (index === state.current && state.active && !state.splits[index]) { state.stationOffset = ms; state.stationStartAt = Date.now(); } else { state.splits[index] = ms; recalcElapsed(); } closeEdit(); if (state.active) { renderStation(); saveActiveSession(); } else renderResults(); toast("Tiempo corregido"); }
-  function adjust(seconds) { if (!state.active) return; state.stationOffset = Math.max(0, stationElapsed() + seconds * 1000); state.stationStartAt = Date.now(); tick(); }
+  function adjust(seconds) { if (!state.active) return; if (!takeWorkoutActionLock(450)) return; state.stationOffset = Math.max(0, stationElapsed() + seconds * 1000); state.stationStartAt = Date.now(); tick(); }
 
   function buildSession() { var splits = [], i; for (i = 0; i < stations.length; i += 1) splits.push({ title: stations[i].title, detail: stations[i].detail, standard: stations[i].standard, ms: Math.round((state.splits[i] || 0) / 100) * 100 }); return { app: "deka-fit-parejas", version: 3, createdAt: new Date().toISOString(), names: { a: personName("a"), b: personName("b") }, photos: { a: state.photos.a || "", b: state.photos.b || "" }, assignments: state.assignments.slice(0), splits: splits }; }
   function totalOf(session) { var total = 0, i; for (i = 0; i < session.splits.length; i += 1) total += Number(session.splits[i].ms) || 0; return total; }
@@ -471,9 +505,11 @@
     while (node && node !== document && node.getAttribute("data-current-assign") === null) node = node.parentNode;
     if (!node || node === document) return;
     if (!state.active || stations[state.current].locked) return;
+    if (!takeWorkoutActionLock(500)) return;
     state.assignments[state.current] = node.getAttribute("data-current-assign") || "";
     renderRoute();
     renderStation();
+    syncWorkoutControlsLock();
     saveSetup();
     saveActiveSession();
     toast("Persona actualizada");
